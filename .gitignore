@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build / cache
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+
+# Environment (nunca subir secretos)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (el servidor crea la carpeta en producción)
+backend/public/uploads/
+
+# v0 / IDE
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.idea/
+.vscode/
