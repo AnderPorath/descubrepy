@@ -1,9 +1,21 @@
 # Base de datos descubrepy
 
-Base de datos: **descubrepy**  
+Base de datos: **descubrepy**
+
+## PostgreSQL (recomendado / Render)
+
+Ejecutá desde la raíz del proyecto (requiere `psql` y `DATABASE_URL`):
+
+```bash
+psql "$DATABASE_URL" -f database/schema.sql
+psql "$DATABASE_URL" -f database/seed.sql
+```
+
+## MySQL (legacy)
+
 Contraseña MySQL (si usás la que indicaste): **12345678**
 
-## Orden de ejecución
+## Orden de ejecución (MySQL)
 
 Ejecutá los SQL **en este orden**, desde la raíz del proyecto:
 
@@ -45,8 +57,8 @@ Ejecutá los SQL **en este orden**, desde la raíz del proyecto:
 
 En la carpeta `backend` configurá el `.env` para usar esta base:
 
-- `DB_NAME=descubrepy`
-- `DB_PASSWORD=12345678`
+- **PostgreSQL**: `DATABASE_URL=...` (y opcional `DATABASE_SSL=true`)
+- **MySQL (legacy)**: `DB_NAME=descubrepy`, `DB_PASSWORD=12345678`
 
 ## Usuarios de ejemplo
 

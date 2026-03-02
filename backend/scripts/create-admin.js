@@ -18,11 +18,11 @@ async function main() {
     const password_hash = await bcrypt.hash(ADMIN.password, 10);
     await db.query(
       `INSERT INTO users (name, email, password_hash, role)
-       VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         name = VALUES(name),
-         password_hash = VALUES(password_hash),
-         role = VALUES(role)`,
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (email) DO UPDATE SET
+         name = EXCLUDED.name,
+         password_hash = EXCLUDED.password_hash,
+         role = EXCLUDED.role`,
       [ADMIN.name, ADMIN.email.toLowerCase(), password_hash, ADMIN.role]
     );
     console.log('Usuario admin creado/actualizado:', ADMIN.email);

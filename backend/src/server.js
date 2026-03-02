@@ -39,24 +39,29 @@ function slugify(text) {
     .replace(/^-|-$/g, '');
 }
 
-function requireAdmin(req, res, next) {
+function addParam(params, value) {
+  params.push(value);
+  return `$${params.length}`;
+}
+
+async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'No autorizado' });
   const payload = verifyToken(token);
   if (!payload) return res.status(401).json({ error: 'Token inválido o expirado' });
   req.userId = payload.id;
-  db.query('SELECT id, role FROM users WHERE id = ?', [payload.id])
-    .then(([rows]) => {
-      if (!rows?.length || rows[0].role !== 'admin') {
-        return res.status(403).json({ error: 'Solo administradores pueden registrar empresas' });
-      }
-      next();
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ error: 'Error al verificar usuario' });
-    });
+  try {
+    const result = await db.query('SELECT id, role FROM users WHERE id = $1', [payload.id]);
+    const rows = result && Array.isArray(result.rows) ? result.rows : [];
+    if (!rows.length || rows[0].role !== 'admin') {
+      return res.status(403).json({ error: 'Solo administradores pueden registrar empresas' });
+    }
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al verificar usuario' });
+  }
 }
 
 function requireAuth(req, res, next) {
@@ -77,9 +82,10 @@ app.get('/', (_req, res) => {
 // Categorías
 app.get('/api/categories', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       'SELECT id, slug, title, description, icon_name, business_count, sort_order FROM categories ORDER BY sort_order ASC'
     );
+    const rows = result && Array.isArray(result.rows) ? result.rows : [];
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -94,15 +100,15 @@ app.get('/api/subcategories', async (req, res) => {
     if (!categorySlug || !String(categorySlug).trim()) {
       return res.json([]);
     }
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT s.id, s.slug, s.title, s.sort_order
        FROM subcategories s
        INNER JOIN categories c ON s.category_id = c.id
-       WHERE c.slug = ?
+       WHERE c.slug = $1
        ORDER BY s.sort_order ASC, s.title ASC`,
       [String(categorySlug).trim()]
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener subcategorías' });
@@ -114,28 +120,27 @@ app.get('/api/featured', async (req, res) => {
   try {
     const { city: cityName, category: categorySlug, subcategory: subcategorySlug } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, c.title AS category, c.slug AS category_slug
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
+             CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
+             c.title AS category, c.slug AS category_slug
       FROM businesses b
       LEFT JOIN categories c ON b.category_id = c.id
       LEFT JOIN subcategories s ON b.subcategory_id = s.id
-      WHERE (b.featured = 1 OR b.featured = true)
+      WHERE COALESCE(b.featured, false) = true
     `;
     const params = [];
     if (categorySlug && String(categorySlug).trim()) {
-      sql += ' AND LOWER(TRIM(c.slug)) = LOWER(?)';
-      params.push(String(categorySlug).trim());
+      sql += ` AND LOWER(TRIM(c.slug)) = LOWER(${addParam(params, String(categorySlug).trim())})`;
     }
     if (subcategorySlug && String(subcategorySlug).trim()) {
-      sql += ' AND LOWER(TRIM(s.slug)) = LOWER(?)';
-      params.push(String(subcategorySlug).trim());
+      sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
     }
     if (cityName && String(cityName).trim()) {
-      sql += ' AND LOWER(TRIM(b.city)) = LOWER(?)';
-      params.push(String(cityName).trim());
+      sql += ` AND LOWER(TRIM(b.city)) = LOWER(${addParam(params, String(cityName).trim())})`;
     }
     sql += ' ORDER BY b.rating DESC LIMIT 50';
-    const [rows] = await db.query(sql, params);
-    res.json(rows);
+    const result = await db.query(sql, params);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener destacados' });
@@ -145,10 +150,10 @@ app.get('/api/featured', async (req, res) => {
 // Todas las ciudades (para el hero)
 app.get('/api/cities', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       'SELECT city FROM cities ORDER BY sort_order ASC, city ASC'
     );
-    res.json(rows.map((r) => r.city));
+    res.json(result.rows.map((r) => r.city));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener ciudades' });
@@ -160,7 +165,9 @@ app.get('/api/businesses', async (req, res) => {
   try {
     const { category: categorySlug, subcategory: subcategorySlug, city: cityName, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, c.title AS category, c.slug AS category_slug
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
+             CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
+             c.title AS category, c.slug AS category_slug
       FROM businesses b
       LEFT JOIN categories c ON b.category_id = c.id
       LEFT JOIN subcategories s ON b.subcategory_id = s.id
@@ -168,25 +175,21 @@ app.get('/api/businesses', async (req, res) => {
     `;
     const params = [];
     if (categorySlug && String(categorySlug).trim()) {
-      sql += ' AND LOWER(TRIM(c.slug)) = LOWER(?)';
-      params.push(String(categorySlug).trim());
+      sql += ` AND LOWER(TRIM(c.slug)) = LOWER(${addParam(params, String(categorySlug).trim())})`;
     }
     if (subcategorySlug && String(subcategorySlug).trim()) {
-      sql += ' AND LOWER(TRIM(s.slug)) = LOWER(?)';
-      params.push(String(subcategorySlug).trim());
+      sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
     }
     if (cityName && String(cityName).trim()) {
-      sql += ' AND LOWER(TRIM(b.city)) = LOWER(?)';
-      params.push(String(cityName).trim());
+      sql += ` AND LOWER(TRIM(b.city)) = LOWER(${addParam(params, String(cityName).trim())})`;
     }
     if (q && String(q).trim()) {
-      sql += ' AND (b.name LIKE ? OR b.location LIKE ? OR b.city LIKE ?)';
       const term = `%${String(q).trim()}%`;
-      params.push(term, term, term);
+      sql += ` AND (b.name ILIKE ${addParam(params, term)} OR b.location ILIKE ${addParam(params, term)} OR b.city ILIKE ${addParam(params, term)})`;
     }
-    sql += ' ORDER BY (COALESCE(b.featured, 0) = 1) DESC, (b.rating IS NOT NULL) DESC, b.rating DESC';
-    const [rows] = await db.query(sql, params);
-    res.json(rows);
+    sql += ' ORDER BY COALESCE(b.featured, false) DESC, (b.rating IS NOT NULL) DESC, b.rating DESC';
+    const result = await db.query(sql, params);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener negocios' });
@@ -198,16 +201,18 @@ app.get('/api/businesses/:slug', async (req, res) => {
   try {
     const slug = (req.params.slug || '').trim();
     if (!slug) return res.status(404).json({ error: 'Negocio no encontrado' });
-    const [rows] = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.latitude, b.longitude, b.city, b.rating, b.image_url, b.featured,
+    const result = await db.query(
+      `SELECT b.id, b.name, b.slug, b.location, b.latitude, b.longitude, b.city, b.rating, b.image_url,
+              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
               b.description, b.phone, b.instagram_url, b.opening_hours, b.menu_services, b.gallery_images,
               c.title AS category, c.slug AS category_slug, s.slug AS subcategory_slug
        FROM businesses b
        LEFT JOIN categories c ON b.category_id = c.id
        LEFT JOIN subcategories s ON b.subcategory_id = s.id
-       WHERE LOWER(TRIM(b.slug)) = LOWER(?)`,
+       WHERE LOWER(TRIM(b.slug)) = LOWER($1)`,
       [slug]
     );
+    const rows = result.rows;
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: 'Negocio no encontrado' });
     }
@@ -246,20 +251,21 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
       image_url,
       gallery_images,
     } = body;
-    const featured = body.featured === true || body.featured === 1 || body.featured === '1' ? 1 : 0;
+    const featured = body.featured === true || body.featured === 1 || body.featured === '1';
     const category_slug = body.category_slug ?? body.categorySlug;
     if (!name?.trim() || !String(category_slug || '').trim() || !city?.trim()) {
       return res.status(400).json({ error: 'Nombre, categoría y ciudad son obligatorios' });
     }
     const slugTrim = String(category_slug).trim();
-    const [rows] = await db.query('SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER(?)', [slugTrim]);
-    const catRow = rows?.[0];
+    const catResult = await db.query('SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER($1)', [slugTrim]);
+    const catRow = catResult.rows?.[0];
     if (!catRow) {
-      const [[countRow]] = await db.query('SELECT COUNT(*) AS n FROM categories');
+      const countResult = await db.query('SELECT COUNT(*)::int AS n FROM categories');
+      const countRow = countResult.rows?.[0];
       const total = countRow?.n ?? 0;
       console.error('[POST /api/businesses] Categoría no encontrada. Slug recibido:', slugTrim, '| Total categorías en DB:', total);
       const msg = total === 0
-        ? 'La tabla categories está vacía. Ejecutá desde la terminal: mysql -u root -p descubrepy < database/schema.sql'
+        ? 'La tabla categories está vacía. Cargá el schema y seed de PostgreSQL: psql "$DATABASE_URL" -f database/schema.sql && psql "$DATABASE_URL" -f database/seed.sql'
         : `No hay categoría con slug "${slugTrim}". Revisá que el slug coincida con los de la base.`;
       return res.status(400).json({ error: msg, received_slug: slugTrim });
     }
@@ -267,10 +273,11 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
     let subcategory_id = null;
     if (subcategory_slug?.trim()) {
       const subSlug = String(subcategory_slug).trim();
-      const [[subRow]] = await db.query(
-        'SELECT id FROM subcategories WHERE category_id = ? AND LOWER(TRIM(slug)) = LOWER(?)',
+      const subResult = await db.query(
+        'SELECT id FROM subcategories WHERE category_id = $1 AND LOWER(TRIM(slug)) = LOWER($2)',
         [category_id, subSlug]
       );
+      const subRow = subResult.rows?.[0];
       if (subRow) subcategory_id = subRow.id;
     }
     let baseSlug = slugify(name);
@@ -278,22 +285,29 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
     let slug = baseSlug;
     let n = 1;
     while (true) {
-      const [existing] = await db.query('SELECT id FROM businesses WHERE slug = ?', [slug]);
-      if (!existing?.length) break;
+      const existingResult = await db.query('SELECT id FROM businesses WHERE slug = $1', [slug]);
+      if (!existingResult.rows?.length) break;
       slug = `${baseSlug}-${++n}`;
     }
-    const galleryJson = Array.isArray(gallery_images)
-      ? JSON.stringify(gallery_images)
-      : typeof gallery_images === 'string'
-        ? gallery_images
-        : null;
+    let galleryVal = null;
+    if (Array.isArray(gallery_images)) {
+      galleryVal = gallery_images;
+    } else if (typeof gallery_images === 'string' && gallery_images.trim()) {
+      try {
+        const parsed = JSON.parse(gallery_images);
+        if (Array.isArray(parsed)) galleryVal = parsed;
+      } catch {
+        galleryVal = null;
+      }
+    }
+    const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
     await db.query(
       `INSERT INTO businesses (
         category_id, subcategory_id, name, slug, location, city, latitude, longitude,
         description, phone, instagram_url, opening_hours, menu_services, image_url, gallery_images, featured
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16)`,
       [
         category_id,
         subcategory_id,
@@ -313,13 +327,16 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         featured,
       ]
     );
-    const [[row]] = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, c.slug AS category_slug
+    const rowResult = await db.query(
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
+              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
+              c.slug AS category_slug
        FROM businesses b
        LEFT JOIN categories c ON b.category_id = c.id
-       WHERE b.slug = ?`,
+       WHERE b.slug = $1`,
       [slug]
     );
+    const row = rowResult.rows?.[0];
     // Notificación por correo a descubrepy.com.py@gmail.com (no bloquea la respuesta)
     sendNewBusinessNotification({
       name: name.trim(),
@@ -358,99 +375,111 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       image_url,
       gallery_images,
     } = body;
-    const featuredVal = body.featured === true || body.featured === 1 || body.featured === '1' ? 1 : (body.featured === false || body.featured === 0 || body.featured === '0' ? 0 : null);
+    const featuredVal = body.featured === true || body.featured === 1 || body.featured === '1'
+      ? true
+      : (body.featured === false || body.featured === 0 || body.featured === '0' ? false : null);
     const categorySlugParam = body.category_slug ?? body.categorySlug;
-    const [[existing]] = await db.query(
-      'SELECT b.id, b.category_id FROM businesses b WHERE LOWER(TRIM(b.slug)) = LOWER(?)',
+    const existingResult = await db.query(
+      'SELECT id, category_id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)',
       [slugParam]
     );
+    const existing = existingResult.rows?.[0];
     if (!existing) return res.status(404).json({ error: 'Negocio no encontrado' });
     let category_id = existing.category_id;
     if (categorySlugParam?.trim()) {
-      const [[catRow]] = await db.query('SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER(?)', [String(categorySlugParam).trim()]);
+      const catResult = await db.query('SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER($1)', [String(categorySlugParam).trim()]);
+      const catRow = catResult.rows?.[0];
       if (catRow) category_id = catRow.id;
     }
     let subcategory_id = null;
     if (subcategory_slug?.trim()) {
-      const [[subRow]] = await db.query(
-        'SELECT id FROM subcategories WHERE category_id = ? AND LOWER(TRIM(slug)) = LOWER(?)',
+      const subResult = await db.query(
+        'SELECT id FROM subcategories WHERE category_id = $1 AND LOWER(TRIM(slug)) = LOWER($2)',
         [category_id, String(subcategory_slug).trim()]
       );
+      const subRow = subResult.rows?.[0];
       if (subRow) subcategory_id = subRow.id;
     }
-    const galleryJson = Array.isArray(gallery_images)
-      ? JSON.stringify(gallery_images)
-      : typeof gallery_images === 'string'
-        ? gallery_images
-        : null;
+    let galleryVal = null;
+    if (Array.isArray(gallery_images)) {
+      galleryVal = gallery_images;
+    } else if (typeof gallery_images === 'string' && gallery_images.trim()) {
+      try {
+        const parsed = JSON.parse(gallery_images);
+        if (Array.isArray(parsed)) galleryVal = parsed;
+      } catch {
+        galleryVal = null;
+      }
+    }
+    const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
     const nameVal = name != null && String(name).trim() ? String(name).trim() : null;
     const cityVal = city != null && String(city).trim() ? String(city).trim() : null;
-    const setParts = [
-      'category_id = ?',
-      'subcategory_id = ?',
-      'name = COALESCE(?, name)',
-      'location = ?',
-      'city = COALESCE(?, city)',
-      'latitude = ?',
-      'longitude = ?',
-    ];
-    const updates = [
-      category_id,
-      subcategory_id,
-      nameVal,
-      location?.trim() || null,
-      cityVal,
-      Number.isFinite(lat) ? lat : null,
-      Number.isFinite(lng) ? lng : null,
-    ];
+    const setParts = [];
+    const updates = [];
+    updates.push(category_id);
+    setParts.push(`category_id = $${updates.length}`);
+    updates.push(subcategory_id);
+    setParts.push(`subcategory_id = $${updates.length}`);
+    updates.push(nameVal);
+    setParts.push(`name = COALESCE($${updates.length}, name)`);
+    updates.push(location?.trim() || null);
+    setParts.push(`location = $${updates.length}`);
+    updates.push(cityVal);
+    setParts.push(`city = COALESCE($${updates.length}, city)`);
+    updates.push(Number.isFinite(lat) ? lat : null);
+    setParts.push(`latitude = $${updates.length}`);
+    updates.push(Number.isFinite(lng) ? lng : null);
+    setParts.push(`longitude = $${updates.length}`);
     if (description !== undefined) {
-      setParts.push('description = ?');
+      setParts.push(`description = $${updates.length + 1}`);
       updates.push(description != null ? String(description).trim() || null : null);
     }
     if (phone !== undefined) {
-      setParts.push('phone = ?');
+      setParts.push(`phone = $${updates.length + 1}`);
       updates.push(phone != null ? String(phone).trim() || null : null);
     }
     if (body.instagram_url !== undefined) {
-      setParts.push('instagram_url = ?');
       const instagram_url = body.instagram_url;
+      setParts.push(`instagram_url = $${updates.length + 1}`);
       updates.push(instagram_url != null ? String(instagram_url).trim() || null : null);
     }
     // Siempre actualizar opening_hours si viene en el body (evita que no se guarde)
     if (Object.prototype.hasOwnProperty.call(body, 'opening_hours')) {
       const hoursVal = body.opening_hours;
-      setParts.push('opening_hours = ?');
+      setParts.push(`opening_hours = $${updates.length + 1}`);
       updates.push(hoursVal != null && String(hoursVal).trim() !== '' ? String(hoursVal).trim() : null);
     }
     if (menu_services !== undefined) {
-      setParts.push('menu_services = ?');
+      setParts.push(`menu_services = $${updates.length + 1}`);
       updates.push(menu_services != null ? String(menu_services).trim() || null : null);
     }
     if (image_url !== undefined) {
-      setParts.push('image_url = ?');
+      setParts.push(`image_url = $${updates.length + 1}`);
       updates.push(image_url != null ? String(image_url).trim() || null : null);
     }
     if (gallery_images !== undefined) {
-      setParts.push('gallery_images = ?');
+      setParts.push(`gallery_images = $${updates.length + 1}::jsonb`);
       updates.push(galleryJson);
     }
     if (featuredVal !== null) {
-      setParts.push('featured = ?');
+      setParts.push(`featured = $${updates.length + 1}`);
       updates.push(featuredVal);
     }
     updates.push(existing.id);
     await db.query(
-      `UPDATE businesses SET ${setParts.join(', ')} WHERE id = ?`,
+      `UPDATE businesses SET ${setParts.join(', ')} WHERE id = $${updates.length}`,
       updates
     );
-    const [[row]] = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, c.slug AS category_slug
-       FROM businesses b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = ?`,
+    const rowResult = await db.query(
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
+              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
+              c.slug AS category_slug
+       FROM businesses b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = $1`,
       [existing.id]
     );
-    res.json(row);
+    res.json(rowResult.rows?.[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar la empresa' });
@@ -462,8 +491,8 @@ app.delete('/api/businesses/:slug', requireAdmin, async (req, res) => {
   try {
     const slugParam = (req.params.slug || '').trim();
     if (!slugParam) return res.status(400).json({ error: 'Slug requerido' });
-    const [result] = await db.query('DELETE FROM businesses WHERE LOWER(TRIM(slug)) = LOWER(?)', [slugParam]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Negocio no encontrado' });
+    const result = await db.query('DELETE FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)', [slugParam]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Negocio no encontrado' });
     res.status(204).send();
   } catch (err) {
     console.error(err);
@@ -475,15 +504,17 @@ app.delete('/api/businesses/:slug', requireAdmin, async (req, res) => {
 app.get('/api/favorites', requireAuth, async (req, res) => {
   try {
     const userId = req.userId;
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, c.title AS category, c.slug AS category_slug
        FROM user_favorites uf
        INNER JOIN businesses b ON uf.business_id = b.id
        LEFT JOIN categories c ON b.category_id = c.id
-       WHERE uf.user_id = ?
+       WHERE uf.user_id = $1
        ORDER BY uf.created_at DESC`,
       [userId]
     );
+    const rawRows = result && Array.isArray(result.rows) ? result.rows : [];
+    const rows = rawRows.map((r) => ({ ...r, featured: r.featured ? 1 : 0 }));
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -496,10 +527,11 @@ app.post('/api/favorites', requireAuth, async (req, res) => {
     const userId = req.userId;
     const slug = (req.body?.slug || req.body?.business_slug || '').trim();
     if (!slug) return res.status(400).json({ error: 'Falta el slug del negocio' });
-    const [[biz]] = await db.query('SELECT id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER(?)', [slug]);
+    const bizResult = await db.query('SELECT id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)', [slug]);
+    const biz = bizResult.rows?.[0];
     if (!biz) return res.status(404).json({ error: 'Negocio no encontrado' });
     await db.query(
-      'INSERT IGNORE INTO user_favorites (user_id, business_id) VALUES (?, ?)',
+      'INSERT INTO user_favorites (user_id, business_id) VALUES ($1, $2) ON CONFLICT (user_id, business_id) DO NOTHING',
       [userId, biz.id]
     );
     res.status(201).json({ ok: true });
@@ -514,10 +546,11 @@ app.delete('/api/favorites/:slug', requireAuth, async (req, res) => {
     const userId = req.userId;
     const slug = (req.params.slug || '').trim();
     if (!slug) return res.status(400).json({ error: 'Slug requerido' });
-    const [[biz]] = await db.query('SELECT id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER(?)', [slug]);
+    const bizResult = await db.query('SELECT id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)', [slug]);
+    const biz = bizResult.rows?.[0];
     if (!biz) return res.status(404).json({ error: 'Negocio no encontrado' });
-    const [result] = await db.query('DELETE FROM user_favorites WHERE user_id = ? AND business_id = ?', [userId, biz.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'No estaba en favoritos' });
+    const result = await db.query('DELETE FROM user_favorites WHERE user_id = $1 AND business_id = $2', [userId, biz.id]);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'No estaba en favoritos' });
     res.status(204).send();
   } catch (err) {
     console.error(err);
@@ -530,13 +563,15 @@ app.get('/api/favorites/check/:slug', requireAuth, async (req, res) => {
     const userId = req.userId;
     const slug = (req.params.slug || '').trim();
     if (!slug) return res.json({ isFavorite: false });
-    const [[row]] = await db.query(
+    const result = await db.query(
       `SELECT 1 FROM user_favorites uf
        INNER JOIN businesses b ON uf.business_id = b.id
-       WHERE uf.user_id = ? AND LOWER(TRIM(b.slug)) = LOWER(?)`,
+       WHERE uf.user_id = $1 AND LOWER(TRIM(b.slug)) = LOWER($2)
+       LIMIT 1`,
       [userId, slug]
     );
-    res.json({ isFavorite: !!row });
+    const rows = result && Array.isArray(result.rows) ? result.rows : [];
+    res.json({ isFavorite: !!rows[0] });
   } catch (err) {
     console.error(err);
     res.json({ isFavorite: false });
@@ -554,9 +589,8 @@ app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
 // Stats para el hero (opcional)
 app.get('/api/stats', async (req, res) => {
   try {
-    const [[businessCount]] = await db.query(
-      'SELECT COUNT(*) AS total FROM businesses'
-    );
+    const businessCountResult = await db.query('SELECT COUNT(*)::int AS total FROM businesses');
+    const businessCount = businessCountResult.rows?.[0];
     res.json({
       businessCount: businessCount?.total ?? 0,
       monthlyVisitors: 15000,
@@ -613,16 +647,18 @@ app.post('/api/auth/register', async (req, res) => {
     if (password.length < 6) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
-    const [[existing]] = await db.query('SELECT id FROM users WHERE email = ?', [email.trim().toLowerCase()]);
+    const emailNorm = email.trim().toLowerCase();
+    const existingResult = await db.query('SELECT id FROM users WHERE email = $1', [emailNorm]);
+    const existing = existingResult.rows?.[0];
     if (existing) {
       return res.status(409).json({ error: 'Ya existe una cuenta con ese email' });
     }
     const password_hash = await bcrypt.hash(password, 10);
-    await db.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-      [name.trim(), email.trim().toLowerCase(), password_hash, 'user']
+    const insertResult = await db.query(
+      'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role, created_at',
+      [name.trim(), emailNorm, password_hash, 'user']
     );
-    const [[row]] = await db.query('SELECT id, name, email, role, created_at FROM users WHERE email = ?', [email.trim().toLowerCase()]);
+    const row = insertResult.rows?.[0];
     const user = { id: row.id, name: row.name, email: row.email, role: row.role };
     const token = signToken({ id: row.id, email: row.email });
     return res.status(201).json({ user, token });
@@ -639,7 +675,11 @@ app.post('/api/auth/login', async (req, res) => {
     if (!email?.trim() || !password) {
       return res.status(400).json({ error: 'Email y contraseña son obligatorios' });
     }
-    const [[row]] = await db.query('SELECT id, name, email, password_hash, role FROM users WHERE email = ?', [email.trim().toLowerCase()]);
+    const result = await db.query(
+      'SELECT id, name, email, password_hash, role FROM users WHERE email = $1',
+      [email.trim().toLowerCase()]
+    );
+    const row = result.rows?.[0];
     if (!row) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
@@ -664,7 +704,8 @@ app.get('/api/auth/me', async (req, res) => {
     if (!token) return res.status(401).json({ error: 'No autorizado' });
     const payload = verifyToken(token);
     if (!payload) return res.status(401).json({ error: 'Token inválido o expirado' });
-    const [[row]] = await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [payload.id]);
+    const result = await db.query('SELECT id, name, email, role FROM users WHERE id = $1', [payload.id]);
+    const row = result.rows?.[0];
     if (!row) return res.status(401).json({ error: 'Usuario no encontrado' });
     return res.json({ user: row });
   } catch (err) {
@@ -682,8 +723,8 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
     const params = [];
 
     if (name != null && String(name).trim()) {
-      updates.push('name = ?');
       params.push(String(name).trim());
+      updates.push(`name = $${params.length}`);
     }
 
     if (new_password != null && String(new_password).length > 0) {
@@ -693,13 +734,14 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
       if (!current_password || String(current_password).length === 0) {
         return res.status(400).json({ error: 'Ingresá tu contraseña actual para cambiar la contraseña' });
       }
-      const [[row]] = await db.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+      const pwdResult = await db.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+      const row = pwdResult.rows?.[0];
       if (!row) return res.status(401).json({ error: 'Usuario no encontrado' });
       const ok = await bcrypt.compare(String(current_password), row.password_hash);
       if (!ok) return res.status(400).json({ error: 'Contraseña actual incorrecta' });
       const password_hash = await bcrypt.hash(String(new_password), 10);
-      updates.push('password_hash = ?');
       params.push(password_hash);
+      updates.push(`password_hash = $${params.length}`);
     }
 
     if (updates.length === 0) {
@@ -707,9 +749,9 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
     }
 
     params.push(userId);
-    await db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
-    const [[user]] = await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [userId]);
-    return res.json({ user });
+    await db.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}`, params);
+    const userResult = await db.query('SELECT id, name, email, role FROM users WHERE id = $1', [userId]);
+    return res.json({ user: userResult.rows?.[0] });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error al actualizar el perfil' });
@@ -719,11 +761,11 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
 // --- Admin: Listar clientes (solo usuarios con role 'user') ---
 app.get('/api/users', requireAdmin, async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT id, name, email, role, created_at FROM users WHERE role = ? ORDER BY name ASC',
+    const result = await db.query(
+      'SELECT id, name, email, role, created_at FROM users WHERE role = $1 ORDER BY name ASC',
       ['user']
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al listar clientes' });
@@ -739,27 +781,32 @@ app.put('/api/users/:id', requireAdmin, async (req, res) => {
     const updates = [];
     const params = [];
     if (name != null && String(name).trim()) {
-      updates.push('name = ?');
       params.push(String(name).trim());
+      updates.push(`name = $${params.length}`);
     }
     if (email != null && String(email).trim()) {
       const emailNorm = String(email).trim().toLowerCase();
-      const [[existing]] = await db.query('SELECT id FROM users WHERE email = ? AND id != ?', [emailNorm, id]);
+      const existingResult = await db.query('SELECT id FROM users WHERE email = $1 AND id != $2', [emailNorm, id]);
+      const existing = existingResult.rows?.[0];
       if (existing) return res.status(400).json({ error: 'Ese email ya está en uso' });
-      updates.push('email = ?');
       params.push(emailNorm);
+      updates.push(`email = $${params.length}`);
     }
     if (new_password != null && String(new_password).length > 0) {
       if (new_password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-      updates.push('password_hash = ?');
       params.push(await bcrypt.hash(String(new_password), 10));
+      updates.push(`password_hash = $${params.length}`);
     }
     if (updates.length === 0) return res.status(400).json({ error: 'Enviá name, email o new_password' });
     params.push(id);
-    const [result] = await db.query('UPDATE users SET ' + updates.join(', ') + ' WHERE id = ? AND role = ?', [...params, 'user']);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
-    const [[user]] = await db.query('SELECT id, name, email, role, created_at FROM users WHERE id = ?', [id]);
-    res.json(user);
+    params.push('user');
+    const result = await db.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length - 1} AND role = $${params.length}`,
+      params
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
+    const userResult = await db.query('SELECT id, name, email, role, created_at FROM users WHERE id = $1', [id]);
+    res.json(userResult.rows?.[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar cliente' });
@@ -771,8 +818,8 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'ID inválido' });
-    const [result] = await db.query('DELETE FROM users WHERE id = ? AND role = ?', [id, 'user']);
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
+    const result = await db.query('DELETE FROM users WHERE id = $1 AND role = $2', [id, 'user']);
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
