@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Star, CheckCircle } from "lucide-react"
@@ -6,7 +9,8 @@ import { getImageUrl, type BusinessDetailApi } from "@/lib/api"
 const DEFAULT_COVER = "/placeholder.jpg"
 
 export function CoverHero({ business }: { business: BusinessDetailApi }) {
-  const imageUrl = getImageUrl(business.image_url) || DEFAULT_COVER
+  const resolved = getImageUrl(business.image_url) || DEFAULT_COVER
+  const [imageUrl, setImageUrl] = useState(resolved)
   const rating = business.rating ?? 0
 
   return (
@@ -18,6 +22,7 @@ export function CoverHero({ business }: { business: BusinessDetailApi }) {
         className="object-cover"
         priority
         unoptimized={imageUrl.startsWith("http") || imageUrl.includes("/uploads/")}
+        onError={() => setImageUrl(DEFAULT_COVER)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
 

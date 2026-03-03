@@ -5,8 +5,11 @@ import { useState } from "react"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import { getImageUrl, type BusinessDetailApi } from "@/lib/api"
 
+const PLACEHOLDER_IMG = "/placeholder.jpg"
+
 export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
   const [lightbox, setLightbox] = useState<number | null>(null)
+  const [failedIndices, setFailedIndices] = useState<Set<number>>(new Set())
   const rawImages = business.gallery_images?.length ? business.gallery_images : (business.image_url ? [business.image_url] : [])
   const images = rawImages.map((src) => getImageUrl(src) || src)
 
@@ -33,11 +36,12 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
               className="group relative aspect-square overflow-hidden rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-accent"
             >
               <Image
-                src={src}
+                src={failedIndices.has(i) ? PLACEHOLDER_IMG : src}
                 alt={`${business.name} - Foto ${i + 1}`}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
-                unoptimized={src.startsWith("http") || src.includes("/uploads/")}
+                unoptimized
+                onError={() => setFailedIndices((s) => new Set(s).add(i))}
               />
               <div className="absolute inset-0 bg-foreground/0 transition-colors group-hover:bg-foreground/10" />
             </button>
@@ -70,11 +74,11 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
           </button>
           <div className="relative h-[70vh] w-full max-w-4xl">
             <Image
-              src={images[lightbox]}
+              src={failedIndices.has(lightbox) ? PLACEHOLDER_IMG : images[lightbox]}
               alt={`${business.name} - Foto ${lightbox + 1}`}
               fill
               className="rounded-xl object-contain"
-              unoptimized={images[lightbox].startsWith("http") || images[lightbox].includes("/uploads/")}
+              unoptimized
             />
           </div>
           <button

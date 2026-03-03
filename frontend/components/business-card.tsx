@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { MapPin, Star } from "lucide-react"
@@ -7,7 +10,8 @@ import { getImageUrl, type BusinessApi } from "@/lib/api"
 const DEFAULT_IMAGE = "/placeholder.jpg"
 
 export function BusinessCard({ business }: { business: BusinessApi }) {
-  const imageUrl = getImageUrl(business.image_url) || DEFAULT_IMAGE
+  const resolved = getImageUrl(business.image_url) || DEFAULT_IMAGE
+  const [imageUrl, setImageUrl] = useState(resolved)
   const rating = business.rating ?? 0
   const locationText = business.city?.trim()
 
@@ -21,6 +25,7 @@ export function BusinessCard({ business }: { business: BusinessApi }) {
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             unoptimized={imageUrl.startsWith("http") || imageUrl.startsWith("/")}
+            onError={() => setImageUrl(DEFAULT_IMAGE)}
           />
           {business.featured ? (
             <div className="absolute top-3 left-3">

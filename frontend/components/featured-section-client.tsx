@@ -7,9 +7,12 @@ import { MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchFeatured, getImageUrl, type BusinessApi } from "@/lib/api"
 
+const PLACEHOLDER_IMG = "/placeholder.svg"
+
 export function FeaturedSectionClient() {
   const [featured, setFeatured] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
+  const [failedImageIds, setFailedImageIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -64,11 +67,12 @@ export function FeaturedSectionClient() {
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
-                    src={getImageUrl(business.image_url) || "/placeholder.svg"}
+                    src={failedImageIds.has(business.id) ? PLACEHOLDER_IMG : (getImageUrl(business.image_url) || PLACEHOLDER_IMG)}
                     alt={business.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized={!!(business.image_url?.startsWith("http") || business.image_url?.includes("/uploads/"))}
+                    unoptimized
+                    onError={() => setFailedImageIds((s) => new Set(s).add(business.id))}
                   />
                   {business.featured ? (
                     <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
