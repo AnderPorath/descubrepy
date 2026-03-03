@@ -59,7 +59,6 @@ export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Horario de atención</p>
-                <p className="text-xs text-muted-foreground">Lunes a domingo</p>
               </div>
             </div>
             {hasParsedRows ? (
