@@ -102,15 +102,14 @@ app.get('/', (_req, res) => {
   res.json({ ok: true, name: 'DescubrePY API', docs: 'Usar la app en http://localhost:3000' });
 });
 
-// Categorías (business_count calculado en tiempo real desde businesses)
+// Categorías (business_count = cantidad real de negocios con esa category_id)
 app.get('/api/categories', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT c.id, c.slug, c.title, c.description, c.icon_name,
-             COALESCE(cnt.n, 0)::int AS business_count,
+             (SELECT COUNT(*)::int FROM businesses b WHERE b.category_id = c.id) AS business_count,
              c.sort_order
       FROM categories c
-      LEFT JOIN (SELECT category_id, COUNT(*) AS n FROM businesses GROUP BY category_id) cnt ON cnt.category_id = c.id
       ORDER BY c.sort_order ASC
     `);
     const rows = result && Array.isArray(result.rows) ? result.rows : [];
