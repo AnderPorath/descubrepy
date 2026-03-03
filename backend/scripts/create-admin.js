@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../src/db');
 
 const ADMIN = {
-  name: 'Ander Alejandro Porath Ramirez',
+  name: 'Ander Porath',
   email: 'anderpthramirez@gmail.com',
   password: '@Ander334',
   role: 'admin',
