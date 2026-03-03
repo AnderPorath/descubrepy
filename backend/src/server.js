@@ -47,6 +47,21 @@ function addParam(params, value) {
   return `$${params.length}`;
 }
 
+/** Normaliza texto para comparar ciudad (minúsculas, sin acentos) */
+function normalizeCity(str) {
+  return String(str ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+}
+
+/** Expresión SQL que normaliza city para comparar (quita acentos comunes) */
+function sqlNormalizeCity(column) {
+  const c = `LOWER(TRIM(${column}))`;
+  return `REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(${c}, 'á|à|ä|â', 'a', 'g'), 'é|è|ë|ê', 'e', 'g'), 'í|ì|ï|î', 'i', 'g'), 'ó|ò|ö|ô', 'o', 'g'), 'ú|ù|ü|û', 'u', 'g'), 'ñ', 'n', 'g')`;
+}
+
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -82,12 +97,17 @@ app.get('/', (_req, res) => {
   res.json({ ok: true, name: 'DescubrePY API', docs: 'Usar la app en http://localhost:3000' });
 });
 
-// Categorías
+// Categorías (business_count calculado en tiempo real desde businesses)
 app.get('/api/categories', async (req, res) => {
   try {
-    const result = await db.query(
-      'SELECT id, slug, title, description, icon_name, business_count, sort_order FROM categories ORDER BY sort_order ASC'
-    );
+    const result = await db.query(`
+      SELECT c.id, c.slug, c.title, c.description, c.icon_name,
+             COALESCE(cnt.n, 0)::int AS business_count,
+             c.sort_order
+      FROM categories c
+      LEFT JOIN (SELECT category_id, COUNT(*) AS n FROM businesses GROUP BY category_id) cnt ON cnt.category_id = c.id
+      ORDER BY c.sort_order ASC
+    `);
     const rows = result && Array.isArray(result.rows) ? result.rows : [];
     res.json(rows);
   } catch (err) {
@@ -139,7 +159,8 @@ app.get('/api/featured', async (req, res) => {
       sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
     }
     if (cityName && String(cityName).trim()) {
-      sql += ` AND LOWER(TRIM(b.city)) = LOWER(${addParam(params, String(cityName).trim())})`;
+      const norm = normalizeCity(cityName);
+      sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norm)}`;
     }
     sql += ' ORDER BY b.rating DESC LIMIT 50';
     const result = await db.query(sql, params);
@@ -184,7 +205,8 @@ app.get('/api/businesses', async (req, res) => {
       sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
     }
     if (cityName && String(cityName).trim()) {
-      sql += ` AND LOWER(TRIM(b.city)) = LOWER(${addParam(params, String(cityName).trim())})`;
+      const norm = normalizeCity(cityName);
+      sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norm)}`;
     }
     if (q && String(q).trim()) {
       const term = `%${String(q).trim()}%`;
