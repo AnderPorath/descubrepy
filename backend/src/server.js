@@ -11,7 +11,12 @@ const { sendNewBusinessNotification, sendContactNotification, sendTestEmail } = 
 const app = express();
 const PORT = process.env.PORT || 6000;
 
-const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
+// En producción usar carpeta persistente (ej. disco en Render) para que las fotos no desaparezcan en redeploys
+const UPLOAD_DIR =
+  process.env.NODE_ENV === 'production' && process.env.UPLOAD_DIR
+    ? process.env.UPLOAD_DIR.replace(/\/$/, '')
+    : path.join(__dirname, '..', 'public', 'uploads');
+
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const upload = multer({

@@ -1,13 +1,21 @@
 # Fotos de negocios (uploads)
 
-En **Render** (y en la mayoría de PaaS) el disco del servidor es **efímero**: los archivos subidos se pierden en cada redeploy o reinicio. Por eso las imágenes pueden devolver 404 aunque se hayan subido correctamente.
+En **Render** (y en la mayoría de PaaS) el disco del servidor es **efímero**: los archivos subidos se pierden en cada redeploy o reinicio. Para que las fotos **no desaparezcan** hay que usar una carpeta persistente.
 
-**Opciones para producción:**
+## Disco persistente en Render
 
-1. **Disco persistente en Render**  
-   En el dashboard de Render podés agregar un "Disk" persistente a tu servicio y montar esa ruta como `UPLOAD_DIR` en el backend (variable de entorno o cambio en el código).
+1. En el dashboard de Render, en tu **Web Service** del backend, entrá a **Disks** y agregá un disco persistente (ej. 1 GB). Render lo monta en una ruta como `/opt/render/project/data` (la ruta exacta aparece en la configuración del disco).
 
-2. **Almacenamiento en la nube (recomendado)**  
-   Subir las imágenes a **AWS S3**, **Cloudinary** o similar y guardar en la base de datos la URL pública. Así las fotos persisten y no dependen del servidor.
+2. En **Environment** del mismo servicio, agregá la variable:
+   ```bash
+   UPLOAD_DIR=/opt/render/project/data/uploads
+   ```
+   (Usá la ruta que Render te indique para el disco + `/uploads`.)
 
-Mientras tanto, el frontend muestra un **placeholder** cuando la imagen falla (404).
+3. El backend ya está configurado: si `NODE_ENV=production` y `UPLOAD_DIR` está definido, guarda y sirve las fotos desde esa carpeta. Así las imágenes persisten entre redeploys.
+
+En **desarrollo** no hace falta definir `UPLOAD_DIR`; se usa `backend/public/uploads`.
+
+## Alternativa: almacenamiento en la nube
+
+Para no depender del disco del servidor, podés subir las imágenes a **AWS S3**, **Cloudinary** o similar y guardar en la base de datos la URL pública. Requiere cambiar el endpoint de upload para enviar el archivo a ese servicio.
