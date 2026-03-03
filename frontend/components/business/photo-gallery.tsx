@@ -52,14 +52,14 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
 
       {lightbox !== null && images.length > 0 && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/90 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-foreground/90 p-4 backdrop-blur-sm"
           role="dialog"
           aria-label="Visor de fotos"
         >
           <button
             type="button"
             onClick={() => setLightbox(null)}
-            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
+            className="absolute right-4 top-4 z-[10000] flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
             aria-label="Cerrar visor"
           >
             <X className="h-5 w-5" />
@@ -67,12 +67,12 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
           <button
             type="button"
             onClick={prev}
-            className="absolute left-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
+            className="absolute left-4 z-[10000] flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
             aria-label="Foto anterior"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="relative h-[70vh] w-full max-w-4xl">
+          <div className="relative z-[10000] h-[70vh] w-full max-w-4xl">
             <Image
               src={failedIndices.has(lightbox) ? PLACEHOLDER_IMG : images[lightbox]}
               alt={`${business.name} - Foto ${lightbox + 1}`}
@@ -84,12 +84,12 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
           <button
             type="button"
             onClick={next}
-            className="absolute right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
+            className="absolute right-4 z-[10000] flex h-10 w-10 items-center justify-center rounded-full bg-card/20 text-primary-foreground transition-colors hover:bg-card/40"
             aria-label="Siguiente foto"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-          <div className="absolute bottom-6 flex items-center gap-2">
+          <div className="absolute bottom-6 z-[10000] flex items-center gap-2">
             {images.map((_, i) => (
               <button
                 key={i}
