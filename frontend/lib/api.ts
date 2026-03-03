@@ -1,5 +1,5 @@
-// Servidor: llama al backend directo. Navegador: usa /api (Next reescribe a :6000). Todo en localhost:3000
-const API_URL = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : '';
+// Base URL del backend. En producción: NEXT_PUBLIC_API_URL (ej. https://tu-api.onrender.com). En local: vacío en navegador (/api) o 127.0.0.1:6000 en servidor.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? (typeof window === 'undefined' ? 'http://127.0.0.1:6000' : '');
 const FETCH_OPTIONS = { next: { revalidate: 30 } as const };
 
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
@@ -45,13 +45,12 @@ export async function fetchFeatured() {
 export type FeaturedFilters = { city?: string; category?: string; subcategory?: string }
 
 export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<BusinessApi[]> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
   const params = new URLSearchParams()
   if (filters?.city?.trim()) params.set('city', filters.city.trim())
   if (filters?.category?.trim()) params.set('category', filters.category.trim())
   if (filters?.subcategory?.trim()) params.set('subcategory', filters.subcategory.trim())
   const query = params.toString()
-  const url = `${base}/api/featured${query ? `?${query}` : ''}`
+  const url = `${API_URL}/api/featured${query ? `?${query}` : ''}`
   try {
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
@@ -208,8 +207,7 @@ export async function updateBusiness(
   payload: UpdateBusinessPayload,
   token: string
 ): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/businesses/${encodeURIComponent(slug)}`, {
+  const res = await fetch(`${API_URL}/api/businesses/${encodeURIComponent(slug)}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -223,8 +221,7 @@ export async function updateBusiness(
 }
 
 export async function deleteBusiness(slug: string, token: string): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/businesses/${encodeURIComponent(slug)}`, {
+  const res = await fetch(`${API_URL}/api/businesses/${encodeURIComponent(slug)}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -246,8 +243,7 @@ export type ContactPayload = {
 }
 
 export async function submitContactForm(payload: ContactPayload): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/contact`, {
+  const res = await fetch(`${API_URL}/api/contact`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -259,8 +255,7 @@ export async function submitContactForm(payload: ContactPayload): Promise<{ erro
 
 // --- Favoritos (solo para usuarios logueados) ---
 export async function fetchFavorites(token: string): Promise<BusinessApi[]> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/favorites`, {
+  const res = await fetch(`${API_URL}/api/favorites`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) return []
@@ -269,8 +264,7 @@ export async function fetchFavorites(token: string): Promise<BusinessApi[]> {
 }
 
 export async function addFavorite(slug: string, token: string): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/favorites`, {
+  const res = await fetch(`${API_URL}/api/favorites`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ slug }),
@@ -281,8 +275,7 @@ export async function addFavorite(slug: string, token: string): Promise<{ error?
 }
 
 export async function removeFavorite(slug: string, token: string): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/favorites/${encodeURIComponent(slug)}`, {
+  const res = await fetch(`${API_URL}/api/favorites/${encodeURIComponent(slug)}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -293,8 +286,7 @@ export async function removeFavorite(slug: string, token: string): Promise<{ err
 }
 
 export async function checkIsFavorite(slug: string, token: string): Promise<boolean> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/favorites/check/${encodeURIComponent(slug)}`, {
+  const res = await fetch(`${API_URL}/api/favorites/check/${encodeURIComponent(slug)}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) return false
@@ -313,8 +305,7 @@ export async function updateProfile(
   payload: UpdateProfilePayload,
   token: string
 ): Promise<{ user?: { id: number; name: string; email: string; role: string }; error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/auth/profile`, {
+  const res = await fetch(`${API_URL}/api/auth/profile`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -337,8 +328,7 @@ export type ClientUser = {
 }
 
 export async function fetchUsers(token: string): Promise<ClientUser[]> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/users`, {
+  const res = await fetch(`${API_URL}/api/users`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!res.ok) throw new Error('Error al cargar clientes')
@@ -352,8 +342,7 @@ export async function updateClient(
   payload: UpdateClientPayload,
   token: string
 ): Promise<{ user?: ClientUser; error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/users/${id}`, {
+  const res = await fetch(`${API_URL}/api/users/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -367,8 +356,7 @@ export async function updateClient(
 }
 
 export async function deleteClient(id: number, token: string): Promise<{ error?: string }> {
-  const base = typeof window === 'undefined' ? 'http://127.0.0.1:6000' : ''
-  const res = await fetch(`${base}/api/users/${id}`, {
+  const res = await fetch(`${API_URL}/api/users/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   })

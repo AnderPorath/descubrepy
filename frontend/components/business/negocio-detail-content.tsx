@@ -17,9 +17,12 @@ import { deleteBusiness, checkIsFavorite, addFavorite, removeFavorite } from "@/
 import type { BusinessDetailApi, BusinessApi } from "@/lib/api"
 import { Pencil, Trash2, Heart } from "lucide-react"
 
+const getApiBase = () => (typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : "")
+
 async function fetchBusinessFromClient(slug: string): Promise<BusinessDetailApi | null> {
   try {
-    const res = await fetch(`/api/businesses/${encodeURIComponent(slug)}`, { cache: "no-store" })
+    const base = getApiBase()
+    const res = await fetch(`${base}/api/businesses/${encodeURIComponent(slug)}`, { cache: "no-store" })
     if (!res.ok) return null
     return await res.json()
   } catch {
@@ -30,7 +33,8 @@ async function fetchBusinessFromClient(slug: string): Promise<BusinessDetailApi 
 async function fetchRelatedFromClient(categorySlug?: string): Promise<BusinessApi[]> {
   if (!categorySlug) return []
   try {
-    const res = await fetch(`/api/businesses?category=${encodeURIComponent(categorySlug)}`, { cache: "no-store" })
+    const base = getApiBase()
+    const res = await fetch(`${base}/api/businesses?category=${encodeURIComponent(categorySlug)}`, { cache: "no-store" })
     if (!res.ok) return []
     return await res.json()
   } catch {

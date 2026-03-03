@@ -39,9 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
+  const apiBase = typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : ""
+
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${apiBase}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -55,11 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return { error: "Error de conexión" }
     }
-  }, [])
+  }, [apiBase])
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${apiBase}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return { error: "Error de conexión" }
     }
-  }, [])
+  }, [apiBase])
 
   const logout = useCallback(() => {
     setUser(null)

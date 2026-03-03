@@ -4,7 +4,7 @@ import path from "path"
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads")
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:6000"
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://127.0.0.1:6000"
 
 export async function POST(request: NextRequest) {
   try {
