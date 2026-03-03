@@ -1,41 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads")
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://127.0.0.1:6000"
+const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || "http://127.0.0.1:6000").replace(/\/$/, "")
 
 export async function POST(request: NextRequest) {
   try {
     const auth = request.headers.get("authorization")
-    const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null
-    if (!token) {
+    if (!auth?.startsWith("Bearer ")) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-    let meRes: Response
-    try {
-      meRes = await fetch(`${BACKEND_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error("Backend no alcanzable:", msg)
-      return NextResponse.json(
-        {
-          error: "El backend no responde. Verificá que esté corriendo (npm run dev en /backend). Si usás un IDE remoto, creá frontend/.env.local con BACKEND_URL=http://127.0.0.1:6000",
-          detail: process.env.NODE_ENV === "development" ? msg : undefined,
-        },
-        { status: 503 }
-      )
-    }
-    if (!meRes.ok) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-    const me = await meRes.json()
-    if (me?.user?.role !== "admin") {
-      return NextResponse.json({ error: "Solo administradores pueden subir imágenes" }, { status: 403 })
     }
     let formData: FormData
     try {
@@ -47,19 +18,53 @@ export async function POST(request: NextRequest) {
       )
     }
     const file = formData.get("image")
-    if (!file || !(file instanceof Blob)) {
+    const isBlob = file != null && typeof (file as Blob).arrayBuffer === "function"
+    if (!file || !isBlob) {
       return NextResponse.json({ error: "Se requiere un archivo de imagen" }, { status: 400 })
     }
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const contentType = file.type || "image/jpeg"
-    const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg"
-    await mkdir(UPLOAD_DIR, { recursive: true })
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`
-    const filePath = path.join(UPLOAD_DIR, name)
-    await writeFile(filePath, buffer)
-    return NextResponse.json({ url: `/uploads/${name}` })
+
+    // Reenviar al backend para que guarde el archivo (en Vercel el disco es de solo lectura)
+    const backendForm = new FormData()
+    backendForm.set("image", file as Blob, (file as File).name || "image.jpg")
+
+    let backendRes: Response
+    try {
+      backendRes = await fetch(`${BACKEND_URL}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: auth },
+        body: backendForm,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error("Backend no alcanzable:", msg)
+      return NextResponse.json(
+        {
+          error: "El backend no responde. Verificá que esté corriendo (npm run dev en /backend). En producción, revisá NEXT_PUBLIC_API_URL.",
+          detail: process.env.NODE_ENV === "development" ? msg : undefined,
+        },
+        { status: 503 }
+      )
+    }
+
+    const data = await backendRes.json().catch(() => ({}))
+    if (!backendRes.ok) {
+      const status = backendRes.status
+      const message = data?.error || "Error al subir la imagen"
+      return NextResponse.json(
+        { error: message, detail: data?.detail },
+        { status: status >= 400 && status < 600 ? status : 500 }
+      )
+    }
+
+    // Devolver URL absoluta del backend para que la imagen se cargue desde ahí
+    const relativePath = typeof data?.url === "string" ? data.url.replace(/^\//, "") : ""
+    const url = relativePath ? `${BACKEND_URL}/${relativePath}` : `${BACKEND_URL}/uploads/fallback`
+    return NextResponse.json({ url })
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: "Error al subir la imagen" }, { status: 500 })
+    console.error("Upload error:", err)
+    return NextResponse.json(
+      { error: "Error al subir la imagen", detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    )
   }
 }
