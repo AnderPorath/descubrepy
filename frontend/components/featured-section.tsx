@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { fetchFeatured } from "@/lib/api"
+import { fetchFeatured, getImageUrl } from "@/lib/api"
 
 export async function FeaturedSection() {
   let featured: Array<{
@@ -57,7 +57,7 @@ export async function FeaturedSection() {
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
-                  src={business.image_url || "/placeholder.svg"}
+                  src={getImageUrl(business.image_url) || "/placeholder.svg"}
                   alt={business.name}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"

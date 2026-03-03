@@ -2,6 +2,18 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? (typeof window === 'undefined' ? 'http://127.0.0.1:6000' : '');
 const FETCH_OPTIONS = { next: { revalidate: 30 } as const };
 
+/** Convierte image_url a URL absoluta para que las fotos carguen desde el backend (necesario cuando front y backend están en distintos dominios). */
+export function getImageUrl(url: string | null | undefined): string {
+  if (!url?.trim()) return '';
+  const u = url.trim();
+  if (u.startsWith('http://') || u.startsWith('https://')) return u;
+  if (u.startsWith('/uploads/')) {
+    const base = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL ?? '') : (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:6000');
+    return base ? `${base.replace(/\/$/, '')}${u}` : u;
+  }
+  return u;
+}
+
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
   try {
     const res = await fetch(url, FETCH_OPTIONS);

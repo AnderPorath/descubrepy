@@ -5,8 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { fetchFeatured } from "@/lib/api"
-import type { BusinessApi } from "@/lib/api"
+import { fetchFeatured, getImageUrl, type BusinessApi } from "@/lib/api"
 
 export function FeaturedSectionClient() {
   const [featured, setFeatured] = useState<BusinessApi[]>([])
@@ -65,11 +64,11 @@ export function FeaturedSectionClient() {
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
-                    src={business.image_url || "/placeholder.svg"}
+                    src={getImageUrl(business.image_url) || "/placeholder.svg"}
                     alt={business.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized={business.image_url?.startsWith("http") || business.image_url?.startsWith("/uploads/")}
+                    unoptimized={!!(business.image_url?.startsWith("http") || business.image_url?.includes("/uploads/"))}
                   />
                   {business.featured ? (
                     <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">

@@ -2,12 +2,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { MapPin, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessApi } from "@/lib/api"
+import { getImageUrl, type BusinessApi } from "@/lib/api"
 
 const DEFAULT_IMAGE = "/placeholder.jpg"
 
 export function BusinessCard({ business }: { business: BusinessApi }) {
-  const imageUrl = business.image_url || DEFAULT_IMAGE
+  const imageUrl = getImageUrl(business.image_url) || DEFAULT_IMAGE
   const rating = business.rating ?? 0
   const locationText = business.city?.trim()
 
@@ -20,7 +20,7 @@ export function BusinessCard({ business }: { business: BusinessApi }) {
             alt={business.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
-            unoptimized={imageUrl.startsWith("http") || imageUrl.startsWith("/images/")}
+            unoptimized={imageUrl.startsWith("http") || imageUrl.startsWith("/")}
           />
           {business.featured ? (
             <div className="absolute top-3 left-3">

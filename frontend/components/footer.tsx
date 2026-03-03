@@ -3,14 +3,13 @@ import Link from "next/link"
 
 const footerLinks = {
   Explora: [
-    { label: "Restaurantes", href: "#" },
-    { label: "Bares", href: "#" },
-    { label: "Gimnasios", href: "#" },
-    { label: "Tiendas", href: "#" },
-    { label: "Eventos", href: "#" },
+    { label: "Gastronomía", href: "/categorias/gastronomia" },
+    { label: "Supermercados", href: "/categorias/supermercados" },
+    { label: "Farmacias", href: "/categorias/farmacias" },
+    { label: "Hotelería", href: "/categorias/hoteleria" },
+    { label: "Cafeterías", href: "/categorias/cafeterias" },
   ],
   Empresa: [
-    { label: "Sobre nosotros", href: "/" },
     { label: "Contacto", href: "/contacto" },
     { label: "Anunciate", href: "/contacto" },
   ],

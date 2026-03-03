@@ -3,11 +3,12 @@
 import Image from "next/image"
 import { useState } from "react"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
-import type { BusinessDetailApi } from "@/lib/api"
+import { getImageUrl, type BusinessDetailApi } from "@/lib/api"
 
 export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
   const [lightbox, setLightbox] = useState<number | null>(null)
-  const images = business.gallery_images?.length ? business.gallery_images : (business.image_url ? [business.image_url] : [])
+  const rawImages = business.gallery_images?.length ? business.gallery_images : (business.image_url ? [business.image_url] : [])
+  const images = rawImages.map((src) => getImageUrl(src) || src)
 
   function next() {
     if (lightbox !== null) setLightbox((lightbox + 1) % images.length)
@@ -36,7 +37,7 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
                 alt={`${business.name} - Foto ${i + 1}`}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
-                unoptimized={src.startsWith("http") || src.startsWith("/uploads/")}
+                unoptimized={src.startsWith("http") || src.includes("/uploads/")}
               />
               <div className="absolute inset-0 bg-foreground/0 transition-colors group-hover:bg-foreground/10" />
             </button>
@@ -73,7 +74,7 @@ export function PhotoGallery({ business }: { business: BusinessDetailApi }) {
               alt={`${business.name} - Foto ${lightbox + 1}`}
               fill
               className="rounded-xl object-contain"
-              unoptimized={images[lightbox].startsWith("http") || images[lightbox].startsWith("/uploads/")}
+              unoptimized={images[lightbox].startsWith("http") || images[lightbox].includes("/uploads/")}
             />
           </div>
           <button
