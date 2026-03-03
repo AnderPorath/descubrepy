@@ -25,7 +25,18 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-app.use(cors({ origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'], credentials: true }));
+app.use(cors({
+  origin: [
+    'https://descubrepy.com.py',
+    'https://www.descubrepy.com.py',
+    'https://descubrepy.vercel.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+  ],
+  credentials: true,
+}));
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(UPLOAD_DIR));
 
