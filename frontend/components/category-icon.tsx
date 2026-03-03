@@ -1,70 +1,33 @@
 "use client"
 
-import {
-  CookingPot,
-  Scissors,
-  Barbell,
-  Coffee,
-  FirstAid,
-  Wrench,
-  Handbag,
-  Buildings,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scales,
-  House,
-  Pill,
-  ShoppingCart,
-  Camera,
-  CalendarBlank,
-  DeviceMobile,
-  type IconProps,
-} from "@phosphor-icons/react"
+import { getCategoryEmoji, getSubcategoryEmoji } from "@/lib/category-emojis"
 
-const sizeMap = { default: 28, sm: 24, lg: 36, xl: 48 }
+const sizeMap = { default: 44, sm: 36, lg: 52, xl: 64 }
 
 type SizeKey = keyof typeof sizeMap
 
-type IconComponent = (props: IconProps) => JSX.Element
-
-const iconMap: Record<string, IconComponent> = {
-  UtensilsCrossed: CookingPot,
-  UtensilsCross: CookingPot,
-  Scissors,
-  Dumbbell: Barbell,
-  Coffee,
-  Stethoscope: FirstAid,
-  Wrench,
-  ShoppingBag: Handbag,
-  Building2: Buildings,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scale: Scales,
-  Scales,
-  Home: House,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar: CalendarBlank,
-  Smartphone: DeviceMobile,
-}
-
 type Props = {
-  iconName: string
+  /** Slug de la categoría (ej. gastronomia, pizzeria). */
+  categorySlug: string
+  /** Si se pasa, se muestra el emoji de la subcategoría (ej. pizzeria → 🍕). */
+  subcategorySlug?: string
   size?: SizeKey
   variant?: "default" | "onDark" | "muted"
   className?: string
-  iconClassName?: string
 }
 
-export function CategoryIcon({ iconName, size = "default", variant = "default", className = "", iconClassName = "" }: Props) {
-  const IconComponent = iconMap[iconName] ?? Wrench
+export function CategoryIcon({
+  categorySlug,
+  subcategorySlug,
+  size = "default",
+  variant = "default",
+  className = "",
+}: Props) {
+  const emoji =
+    subcategorySlug != null && subcategorySlug !== ""
+      ? getSubcategoryEmoji(categorySlug, subcategorySlug)
+      : getCategoryEmoji(categorySlug)
+
   const px = sizeMap[size]
   const isOnDark = variant === "onDark"
   const isMuted = variant === "muted"
@@ -73,19 +36,17 @@ export function CategoryIcon({ iconName, size = "default", variant = "default", 
     : isMuted
       ? "bg-secondary/50"
       : "bg-gradient-to-br from-primary/15 to-primary/5"
-  const iconColor = isOnDark ? "var(--primary-foreground)" : isMuted ? "var(--muted-foreground)" : "var(--primary)"
+
+  const emojiSize = Math.round(px * 0.6)
 
   return (
     <div
       className={`flex shrink-0 items-center justify-center rounded-2xl shadow-sm ${containerClass} ${className}`}
-      style={{ width: px + 16, height: px + 16, minWidth: px + 16, minHeight: px + 16 }}
+      style={{ width: px, height: px, minWidth: px, minHeight: px }}
     >
-      <IconComponent
-        weight="duotone"
-        size={px}
-        className={iconClassName || (isOnDark ? "text-primary-foreground" : isMuted ? "text-muted-foreground" : "text-primary")}
-        style={{ color: iconColor }}
-      />
+      <span className="leading-none" style={{ fontSize: emojiSize }}>
+        {emoji}
+      </span>
     </div>
   )
 }

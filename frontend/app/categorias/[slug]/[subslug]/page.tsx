@@ -143,7 +143,7 @@ export default async function CategorySubslugPage({
               Volver a {category.title}
             </Link>
             <div className="flex items-center gap-6">
-              <CategoryIcon iconName={category.icon_name} size="xl" variant="onDark" />
+              <CategoryIcon categorySlug={slug} subcategorySlug={subslug === "todos" ? undefined : subslug} size="xl" variant="onDark" />
               <div>
                 <h1 className="font-serif text-3xl font-bold text-primary-foreground md:text-4xl">
                   {pageTitle}
@@ -157,7 +157,7 @@ export default async function CategorySubslugPage({
           </div>
         </section>
 
-        <SubcategoryBusinesses categorySlug={slug} subslug={subslug} iconName={category.icon_name} />
+        <SubcategoryBusinesses categorySlug={slug} subslug={subslug} />
       </main>
       <Footer />
     </div>

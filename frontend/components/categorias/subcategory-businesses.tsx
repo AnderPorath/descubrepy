@@ -18,7 +18,6 @@ import { CategoryIcon } from "@/components/category-icon"
 type Props = {
   categorySlug: string
   subslug: string
-  iconName: string
 }
 
 const FALLBACK_CITIES = [
@@ -26,7 +25,7 @@ const FALLBACK_CITIES = [
   "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby",
 ]
 
-export function SubcategoryBusinesses({ categorySlug, subslug, iconName }: Props) {
+export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
   const [businesses, setBusinesses] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
   const [city, setCity] = useState("")
@@ -127,7 +126,7 @@ export function SubcategoryBusinesses({ categorySlug, subslug, iconName }: Props
         </div>
       </div>
       <div className="flex flex-col items-center gap-4 py-20 text-center">
-        <CategoryIcon iconName={iconName} size="xl" variant="muted" />
+        <CategoryIcon categorySlug={categorySlug} subcategorySlug={subslug} size="xl" variant="muted" />
         <h2 className="text-xl font-bold text-foreground">Próximamente</h2>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           {city.trim()

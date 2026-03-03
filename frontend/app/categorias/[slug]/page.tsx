@@ -207,7 +207,7 @@ export default async function CategorySlugPage({
               {fromInicio ? "Volver al inicio" : "Volver a todas las categorías"}
             </Link>
             <div className="flex items-center gap-6">
-            <CategoryIcon iconName={category.icon_name} size="xl" variant="onDark" />
+            <CategoryIcon categorySlug={category.slug} size="xl" variant="onDark" />
             <div>
               <h1 className="font-serif text-3xl font-bold text-primary-foreground md:text-4xl">
                 {category.title}
@@ -231,7 +231,7 @@ export default async function CategorySlugPage({
                 href={`/categorias/${slug}/${sub.slug}`}
                 className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
               >
-                <CategoryIcon iconName={category.icon_name} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
+                <CategoryIcon categorySlug={slug} subcategorySlug={sub.slug} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
                 <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                   {sub.title}
                 </h3>
@@ -244,7 +244,7 @@ export default async function CategorySlugPage({
               href={`/categorias/${slug}/todos`}
               className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
             >
-              <CategoryIcon iconName={category.icon_name} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
+              <CategoryIcon categorySlug={slug} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
               <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                 Ver todos los negocios
               </h3>
