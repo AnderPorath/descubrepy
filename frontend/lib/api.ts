@@ -26,7 +26,7 @@ async function safeFetch<T>(url: string, fallback: T): Promise<T> {
 
 export type CategoryApi = { id: number; slug: string; title: string; description: string | null; icon_name: string; business_count: number }
 
-export type SubcategoryApi = { id: number; slug: string; title: string; sort_order: number }
+export type SubcategoryApi = { id: number; slug: string; title: string; sort_order: number; business_count?: number }
 
 export async function fetchCategories() {
   return safeFetch<CategoryApi[]>(`${API_URL}/api/categories`, []);

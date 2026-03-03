@@ -332,7 +332,9 @@ function NegociosContent() {
                       <SelectItem value="all">Todas las subcategorías</SelectItem>
                       {subcategories.map((sub) => (
                         <SelectItem key={sub.id} value={sub.slug}>
-                          {sub.title}
+                          {typeof sub.business_count === "number"
+                            ? `${sub.title} (${sub.business_count})`
+                            : sub.title}
                         </SelectItem>
                       ))}
                     </SelectContent>

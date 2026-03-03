@@ -287,7 +287,7 @@ export default async function CategorySlugPage({
                   {sub.title}
                 </h3>
                 <p className="text-xs text-[#6b7280] sm:text-sm lg:text-base">
-                  Ver negocios
+                  {typeof sub.business_count === "number" ? `${sub.business_count} ${sub.business_count === 1 ? "local" : "locales"}` : "Ver negocios"}
                 </p>
               </Link>
             ))}

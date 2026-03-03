@@ -116,7 +116,7 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
-// Subcategorías por categoría (?category=slug)
+// Subcategorías por categoría (?category=slug), con cantidad de negocios por subcategoría
 app.get('/api/subcategories', async (req, res) => {
   try {
     const { category: categorySlug } = req.query || {};
@@ -124,9 +124,11 @@ app.get('/api/subcategories', async (req, res) => {
       return res.json([]);
     }
     const result = await db.query(
-      `SELECT s.id, s.slug, s.title, s.sort_order
+      `SELECT s.id, s.slug, s.title, s.sort_order,
+              COALESCE(cnt.n, 0)::int AS business_count
        FROM subcategories s
        INNER JOIN categories c ON s.category_id = c.id
+       LEFT JOIN (SELECT subcategory_id, COUNT(*) AS n FROM businesses GROUP BY subcategory_id) cnt ON cnt.subcategory_id = s.id
        WHERE c.slug = $1
        ORDER BY s.sort_order ASC, s.title ASC`,
       [String(categorySlug).trim()]
