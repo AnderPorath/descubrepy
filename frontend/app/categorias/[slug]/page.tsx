@@ -1,55 +1,10 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { CategoryIcon } from "@/components/category-icon"
 import { fetchCategories, fetchSubcategories } from "@/lib/api"
-import {
-  UtensilsCrossed,
-  Dumbbell,
-  ShoppingBag,
-  Wrench,
-  Scissors,
-  Coffee,
-  Stethoscope,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Building2,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-  type LucideIcon,
-  ArrowLeft,
-} from "lucide-react"
-
-const iconMap: Record<string, LucideIcon> = {
-  UtensilsCrossed,
-  Scissors,
-  Dumbbell,
-  Coffee,
-  Stethoscope,
-  Wrench,
-  ShoppingBag,
-  Building2,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-}
 
 // Fallback cuando el backend no responde (mismos slugs que la lista de categorías)
 const FALLBACK_CATEGORIES: Array<{ slug: string; title: string; description: string | null; icon_name: string }> = [
@@ -236,8 +191,6 @@ export default async function CategorySlugPage({
 
   const subcategoriesList = subcategories.length > 0 ? subcategories : (FALLBACK_SUBCATEGORIES[slug] ?? [])
 
-  const Icon = iconMap[category.icon_name] ?? Wrench
-
   const fromInicio = from === "inicio"
 
   return (
@@ -254,9 +207,7 @@ export default async function CategorySlugPage({
               {fromInicio ? "Volver al inicio" : "Volver a todas las categorías"}
             </Link>
             <div className="flex items-center gap-6">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/10 text-primary-foreground">
-              <Icon className="h-8 w-8" />
-            </div>
+            <CategoryIcon iconName={category.icon_name} size="xl" variant="onDark" />
             <div>
               <h1 className="font-serif text-3xl font-bold text-primary-foreground md:text-4xl">
                 {category.title}
@@ -280,9 +231,7 @@ export default async function CategorySlugPage({
                 href={`/categorias/${slug}/${sub.slug}`}
                 className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
               >
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#eef2f7] transition-colors duration-300 group-hover:bg-red-600 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-                  <Icon className="h-6 w-6 text-[#1f3b64] transition-colors duration-300 group-hover:text-white sm:h-7 sm:w-7 lg:h-10 lg:w-10" />
-                </div>
+                <CategoryIcon iconName={category.icon_name} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
                 <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                   {sub.title}
                 </h3>
@@ -295,9 +244,7 @@ export default async function CategorySlugPage({
               href={`/categorias/${slug}/todos`}
               className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#eef2f7] transition-colors duration-300 group-hover:bg-red-600 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-                <Icon className="h-6 w-6 text-[#1f3b64] transition-colors duration-300 group-hover:text-white sm:h-7 sm:w-7 lg:h-10 lg:w-10" />
-              </div>
+              <CategoryIcon iconName={category.icon_name} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
               <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                 Ver todos los negocios
               </h3>

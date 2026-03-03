@@ -12,53 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  UtensilsCrossed,
-  Dumbbell,
-  ShoppingBag,
-  Wrench,
-  Scissors,
-  Coffee,
-  Stethoscope,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Building2,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-  MapPin,
-  type LucideIcon,
-} from "lucide-react"
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  UtensilsCrossed,
-  Scissors,
-  Dumbbell,
-  Coffee,
-  Stethoscope,
-  Wrench,
-  ShoppingBag,
-  Building2,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-}
+import { MapPin } from "lucide-react"
+import { CategoryIcon } from "@/components/category-icon"
 
 type Props = {
   categorySlug: string
@@ -72,7 +27,6 @@ const FALLBACK_CITIES = [
 ]
 
 export function SubcategoryBusinesses({ categorySlug, subslug, iconName }: Props) {
-  const Icon = ICON_MAP[iconName] ?? Wrench
   const [businesses, setBusinesses] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
   const [city, setCity] = useState("")
@@ -173,9 +127,7 @@ export function SubcategoryBusinesses({ categorySlug, subslug, iconName }: Props
         </div>
       </div>
       <div className="flex flex-col items-center gap-4 py-20 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
-          <Icon className="h-10 w-10 text-muted-foreground" />
-        </div>
+        <CategoryIcon iconName={iconName} size="xl" variant="muted" />
         <h2 className="text-xl font-bold text-foreground">Próximamente</h2>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           {city.trim()

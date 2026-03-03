@@ -1,29 +1,7 @@
 import Link from "next/link"
-import { UtensilsCrossed, Dumbbell, ShoppingBag, Wrench, Scissors, Coffee, Stethoscope, GraduationCap, Car, Briefcase, Heart, Building2, ArrowRight, Dog, Scale, Home, Pill, ShoppingCart, Camera, Calendar, Smartphone, LucideIcon } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { CategoryIcon } from "@/components/category-icon"
 import { fetchCategories } from "@/lib/api"
-
-const iconMap: Record<string, LucideIcon> = {
-  UtensilsCrossed,
-  Scissors,
-  Dumbbell,
-  Coffee,
-  Stethoscope,
-  Wrench,
-  ShoppingBag,
-  Building2,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-}
 
 const DEFAULT_CATEGORIES: Array<{ id: number; slug: string; title: string; description: string | null; icon_name: string; business_count: number }> = [
   { id: 1, slug: "gastronomia", title: "Gastronomia", description: null, icon_name: "UtensilsCrossed", business_count: 0 },
@@ -76,17 +54,13 @@ export async function CategoriesSection() {
           className="mt-10 gap-3 sm:gap-5 lg:mt-12"
           style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))' }}
         >
-          {categories.slice(0, 12).map((category) => {
-            const Icon = iconMap[category.icon_name] ?? Wrench
-            return (
+          {categories.slice(0, 12).map((category) => (
               <Link
                 key={category.id}
                 href={`/categorias/${category.slug}?from=inicio`}
                 className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
               >
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#eef2f7] transition-colors duration-300 group-hover:bg-red-600 sm:h-16 sm:w-16 lg:h-20 lg:w-20">
-                  <Icon className="h-6 w-6 text-[#1f3b64] transition-colors duration-300 group-hover:text-white sm:h-7 sm:w-7 lg:h-10 lg:w-10" />
-                </div>
+                <CategoryIcon iconName={category.icon_name} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
                 <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                   {category.title}
                 </h3>
@@ -94,8 +68,7 @@ export async function CategoriesSection() {
                   {category.business_count} negocios
                 </p>
               </Link>
-            )
-          })}
+            ))}
         </div>
 
         <div className="mt-12 flex justify-center sm:mt-16 lg:mt-20">

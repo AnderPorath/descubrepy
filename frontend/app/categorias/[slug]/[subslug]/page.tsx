@@ -1,56 +1,11 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ChevronLeft } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { SubcategoryBusinesses } from "@/components/categorias/subcategory-businesses"
+import { CategoryIcon } from "@/components/category-icon"
 import { fetchCategories, fetchSubcategories } from "@/lib/api"
-import {
-  UtensilsCrossed,
-  Dumbbell,
-  ShoppingBag,
-  Wrench,
-  Scissors,
-  Coffee,
-  Stethoscope,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Building2,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-  type LucideIcon,
-} from "lucide-react"
-import { ChevronLeft } from "lucide-react"
-
-const iconMap: Record<string, LucideIcon> = {
-  UtensilsCrossed,
-  Scissors,
-  Dumbbell,
-  Coffee,
-  Stethoscope,
-  Wrench,
-  ShoppingBag,
-  Building2,
-  GraduationCap,
-  Car,
-  Briefcase,
-  Heart,
-  Dog,
-  Scale,
-  Home,
-  Pill,
-  ShoppingCart,
-  Camera,
-  Calendar,
-  Smartphone,
-}
 
 const FALLBACK_CATEGORIES: Array<{ slug: string; title: string; icon_name: string }> = [
   { slug: "gastronomia", title: "Gastronomía", icon_name: "UtensilsCrossed" },
@@ -173,7 +128,6 @@ export default async function CategorySubslugPage({
   }
 
   const pageTitle = isTodos ? `Todos los negocios de ${category.title}` : subcategoriesList.find((s) => s.slug === subslug)?.title ?? subslug
-  const Icon = iconMap[category.icon_name] ?? Wrench
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -189,9 +143,7 @@ export default async function CategorySubslugPage({
               Volver a {category.title}
             </Link>
             <div className="flex items-center gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/10 text-primary-foreground">
-                <Icon className="h-8 w-8" />
-              </div>
+              <CategoryIcon iconName={category.icon_name} size="xl" variant="onDark" />
               <div>
                 <h1 className="font-serif text-3xl font-bold text-primary-foreground md:text-4xl">
                   {pageTitle}
