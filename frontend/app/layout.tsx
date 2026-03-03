@@ -11,10 +11,6 @@ export const metadata: Metadata = {
   title: 'DescubrePY - Tu Guia Digital de Paraguay',
   description: 'Descubre los mejores lugares de Paraguay. Restaurantes, bares, gimnasios, tiendas, eventos y servicios en tu ciudad.',
   generator: 'v0.app',
-  icons: {
-    icon: '/icon.png',
-    apple: '/apple-icon.png',
-  },
 }
 
 export const viewport: Viewport = {
