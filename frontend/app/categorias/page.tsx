@@ -54,15 +54,12 @@ export default async function CategoriasPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
-          <div
-            className="gap-3 sm:gap-5"
-            style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
-          >
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-3 lg:grid-cols-6 lg:gap-5">
             {categories.map((category) => (
                 <Link
                   key={category.id}
                   href={`/categorias/${category.slug}?from=categorias`}
-                  className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4"
+                  className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4 md:min-h-[100px] md:p-4 lg:min-h-[140px] lg:p-5"
                 >
                   <CategoryIcon categorySlug={category.slug} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
                   <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">

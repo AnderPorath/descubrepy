@@ -270,14 +270,14 @@ function NegociosContent() {
               />
             </div>
 
-            <div className={`flex flex-wrap items-end gap-4 ${showFilters ? "block" : "hidden md:flex"}`}>
-              <div className="flex flex-col gap-1.5">
+            <div className={`${showFilters ? "flex flex-col gap-4" : "hidden md:flex md:flex-row md:flex-wrap md:items-end md:gap-4"}`}>
+              <div className="flex flex-col gap-1.5 w-full md:w-auto">
                 <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5" />
                   Ciudad
                 </Label>
                 <Select value={city || "all"} onValueChange={(v) => setCity(v === "all" ? "" : v)}>
-                  <SelectTrigger className="w-[180px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
+                  <SelectTrigger className="w-full min-w-0 md:w-[180px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
                     <SelectValue placeholder="Todas las ciudades" />
                   </SelectTrigger>
                   <SelectContent>
@@ -290,7 +290,7 @@ function NegociosContent() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 w-full md:w-auto">
                 <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
                   <Tag className="h-3.5 w-3.5" />
                   Categoría
@@ -302,7 +302,7 @@ function NegociosContent() {
                     setSubcategory("")
                   }}
                 >
-                  <SelectTrigger className="w-[200px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
+                  <SelectTrigger className="w-full min-w-0 md:w-[200px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
                     <SelectValue placeholder="Todas las categorías" />
                   </SelectTrigger>
                   <SelectContent>
@@ -316,7 +316,7 @@ function NegociosContent() {
                 </Select>
               </div>
               {category ? (
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1.5 w-full md:w-auto">
                   <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
                     <Layers className="h-3.5 w-3.5" />
                     Subcategoría
@@ -325,7 +325,7 @@ function NegociosContent() {
                     value={subcategory || "all"}
                     onValueChange={(v) => setSubcategory(v === "all" ? "" : v)}
                   >
-                    <SelectTrigger className="w-[200px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
+                    <SelectTrigger className="w-full min-w-0 md:w-[200px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
                       <SelectValue placeholder="Todas las subcategorías" />
                     </SelectTrigger>
                     <SelectContent>
@@ -346,10 +346,15 @@ function NegociosContent() {
             <Button
               variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 md:hidden w-full"
+              className="md:hidden w-full shrink-0 border-2 border-primary-foreground/30 bg-primary-foreground/5 py-3 text-base font-medium text-primary-foreground hover:bg-primary-foreground/15"
             >
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              {showFilters ? "Ocultar filtros" : "Ver filtros"}
+              <SlidersHorizontal className="h-5 w-5 mr-2 shrink-0" />
+              {showFilters ? "Ocultar filtros" : "Filtros (ciudad, categoría)"}
+              {hasActiveFilters && !showFilters ? (
+                <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-xs font-bold">
+                  !
+                </span>
+              ) : null}
             </Button>
           </div>
         </div>
