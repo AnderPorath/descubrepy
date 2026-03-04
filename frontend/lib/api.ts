@@ -28,25 +28,31 @@ export type CategoryApi = { id: number; slug: string; title: string; description
 
 export type SubcategoryApi = { id: number; slug: string; title: string; sort_order: number; business_count?: number }
 
-export async function fetchCategories() {
-  return safeFetch<CategoryApi[]>(`${API_URL}/api/categories`, []);
+/** Categorías sin caché para que el business_count se actualice al eliminar/crear negocios. */
+export async function fetchCategories(): Promise<CategoryApi[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/categories`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
 }
 
-/** Para cargar en el servidor sin caché (registro de empresa, etc.) */
+/** Alias por compatibilidad (registro de empresa, etc.). */
 export async function fetchCategoriesFresh(): Promise<CategoryApi[]> {
-  const url = API_URL ? `${API_URL}/api/categories` : '/api/categories'
+  return fetchCategories();
+}
+
+export async function fetchSubcategories(categorySlug: string): Promise<SubcategoryApi[]> {
+  if (!categorySlug?.trim()) return []
   try {
-    const res = await fetch(url, { cache: 'no-store' })
+    const res = await fetch(`${API_URL}/api/subcategories?category=${encodeURIComponent(categorySlug.trim())}`, { cache: 'no-store' })
     if (!res.ok) return []
     return await res.json()
   } catch {
     return []
   }
-}
-
-export async function fetchSubcategories(categorySlug: string): Promise<SubcategoryApi[]> {
-  if (!categorySlug?.trim()) return []
-  return safeFetch<SubcategoryApi[]>(`${API_URL}/api/subcategories?category=${encodeURIComponent(categorySlug.trim())}`, [])
 }
 
 export async function fetchFeatured() {
