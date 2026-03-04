@@ -652,6 +652,13 @@ app.post('/api/contact', async (req, res) => {
     if (!nombre || !email) {
       return res.status(400).json({ error: 'Nombre y email son obligatorios' });
     }
+    const emailConfigured = process.env.EMAIL_USER && (process.env.EMAIL_APP_PASSWORD || '').replace(/\s/g, '').trim();
+    if (!emailConfigured) {
+      console.warn('[contact] EMAIL_USER o EMAIL_APP_PASSWORD no configurados en .env');
+      return res.status(503).json({
+        error: 'El envío de solicitudes no está disponible en este momento. Por favor contactanos por WhatsApp o por otro medio.',
+      });
+    }
     await sendContactNotification({
       nombre,
       telefono: (body.telefono || '').trim(),
