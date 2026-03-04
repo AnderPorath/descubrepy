@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Link from "next/link"
 import { Send, CheckCircle2, Loader2 } from "lucide-react"
 import { submitContactForm } from "@/lib/api"
 
@@ -169,9 +170,9 @@ export function ContactForm() {
 
         <p className="text-center text-xs text-slate-500 mt-3">
           Al enviar aceptás nuestros{" "}
-          <a href="#" className="text-blue-600 underline underline-offset-2 hover:text-blue-700">
-            términos y condiciones
-          </a>
+          <Link href="/terminos-de-servicio" className="text-blue-600 underline underline-offset-2 hover:text-blue-700">
+            términos de servicio
+          </Link>
         </p>
       </form>
     </div>
