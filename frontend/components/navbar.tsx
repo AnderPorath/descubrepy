@@ -39,7 +39,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex h-10 shrink-0 items-center overflow-visible">
           <Image
-            src="/images/logo.png"
+            src="/images/logo-v303.png"
             alt="DescubrePY - Tu guia digital de Paraguay"
             width={360}
             height={108}

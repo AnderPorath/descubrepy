@@ -58,7 +58,7 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Image
-              src="/images/logo.png"
+              src="/images/logo-v303.png"
               alt="DescubrePY"
               width={380}
               height={114}
