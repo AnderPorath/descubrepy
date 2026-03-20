@@ -37,24 +37,15 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/images/logo.png"
             alt="DescubrePY - Tu guia digital de Paraguay"
-            width={180}
-            height={48}
-            className="h-10 w-auto"
+            width={280}
+            height={84}
+            className="h-14 w-auto"
             priority
           />
-          <div className="flex flex-col leading-tight">
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              {"Descubre"}
-              <span className="text-accent">PY</span>
-            </span>
-            <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-              Tu guia digital
-            </span>
-          </div>
         </Link>
 
         {/* Desktop nav links */}
