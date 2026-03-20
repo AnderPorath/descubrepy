@@ -37,19 +37,19 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex h-10 shrink-0 items-center overflow-visible">
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/images/logo-v303.png"
             alt="DescubrePY - Tu guia digital de Paraguay"
             width={360}
             height={108}
-            className="h-10 w-auto origin-left scale-[1.42]"
+            className="h-10 w-auto"
             priority
           />
         </Link>
 
         {/* Desktop nav links */}
-        <ul className="hidden items-center gap-10 lg:flex">
+        <ul className="hidden items-center gap-7 xl:gap-10 lg:flex">
           {navLinks.map((link) => (
             <li key={link.label}>
               <Link
