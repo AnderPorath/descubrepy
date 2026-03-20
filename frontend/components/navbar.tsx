@@ -41,9 +41,9 @@ export function Navbar() {
           <Image
             src="/images/logo.png"
             alt="DescubrePY - Tu guia digital de Paraguay"
-            width={280}
-            height={84}
-            className="h-14 w-auto"
+            width={420}
+            height={126}
+            className="h-20 w-auto"
             priority
           />
         </Link>

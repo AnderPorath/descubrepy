@@ -60,9 +60,9 @@ export function Footer() {
             <Image
               src="/images/logo.png"
               alt="DescubrePY"
-              width={260}
-              height={78}
-              className="h-14 w-auto"
+              width={380}
+              height={114}
+              className="h-20 w-auto"
             />
             <p className="mt-4 max-w-xs text-sm text-muted-foreground leading-relaxed">
               Tu guia digital de Paraguay. Conectamos personas con los mejores negocios y servicios del pais.
