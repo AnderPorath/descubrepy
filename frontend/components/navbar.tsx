@@ -43,7 +43,7 @@ export function Navbar() {
             alt="DescubrePY - Tu guia digital de Paraguay"
             width={420}
             height={126}
-            className="h-12 w-auto origin-left scale-[1.85]"
+            className="h-12 w-auto origin-left scale-[2.2]"
             priority
           />
         </Link>
