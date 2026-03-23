@@ -26,7 +26,7 @@ export function HeroSection() {
   }, [])
 
   return (
-    <section className="relative min-h-[70vh] overflow-hidden md:min-h-[75vh]">
+    <section className="relative min-h-[52vh] overflow-hidden md:min-h-[58vh]">
       {/* Background image with dark overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
