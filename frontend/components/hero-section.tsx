@@ -30,7 +30,7 @@ export function HeroSection() {
       {/* Background image with dark overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/hero-bg-v3.png')" }}
+        style={{ backgroundImage: "url('/images/hero-bg-v4.png')" }}
       >
         <div className="absolute inset-0 bg-black/55" />
       </div>
