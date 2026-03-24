@@ -61,9 +61,6 @@ export async function CategoriesSection() {
                 <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
                   {category.title}
                 </h3>
-                <p className="text-xs text-[#6b7280] sm:text-sm lg:text-base">
-                  {category.business_count} negocios
-                </p>
               </Link>
             ))}
         </div>
