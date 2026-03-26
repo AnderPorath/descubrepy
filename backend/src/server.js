@@ -68,6 +68,29 @@ function sqlNormalizeCity(column) {
   return `REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(${c}, 'á|à|ä|â', 'a', 'g'), 'é|è|ë|ê', 'e', 'g'), 'í|ì|ï|î', 'i', 'g'), 'ó|ò|ö|ô', 'o', 'g'), 'ú|ù|ü|û', 'u', 'g'), 'ñ', 'n', 'g')`;
 }
 
+async function ensureBusinessCategoriesSchema() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS business_categories (
+      business_id INTEGER NOT NULL,
+      category_id INTEGER NOT NULL,
+      PRIMARY KEY (business_id, category_id),
+      CONSTRAINT fk_bc_business FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE CASCADE,
+      CONSTRAINT fk_bc_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+    )
+  `)
+  await db.query('CREATE INDEX IF NOT EXISTS idx_bc_category ON business_categories(category_id)')
+  await db.query('CREATE INDEX IF NOT EXISTS idx_bc_business ON business_categories(business_id)')
+  await db.query(`
+    INSERT INTO business_categories (business_id, category_id)
+    SELECT id, category_id FROM businesses
+    ON CONFLICT (business_id, category_id) DO NOTHING
+  `)
+}
+
+ensureBusinessCategoriesSchema().catch((err) => {
+  console.error('[schema] Error al preparar business_categories:', err.message)
+})
+
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization;
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -108,7 +131,7 @@ app.get('/api/categories', async (req, res) => {
   try {
     const result = await db.query(`
       SELECT c.id, c.slug, c.title, c.description, c.icon_name,
-             (SELECT COUNT(*)::int FROM businesses b WHERE b.category_id = c.id) AS business_count,
+             (SELECT COUNT(DISTINCT bc.business_id)::int FROM business_categories bc WHERE bc.category_id = c.id) AS business_count,
              c.sort_order
       FROM categories c
       ORDER BY c.sort_order ASC
@@ -160,7 +183,7 @@ app.get('/api/featured', async (req, res) => {
     `;
     const params = [];
     if (categorySlug && String(categorySlug).trim()) {
-      sql += ` AND LOWER(TRIM(c.slug)) = LOWER(${addParam(params, String(categorySlug).trim())})`;
+      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
     }
     if (subcategorySlug && String(subcategorySlug).trim()) {
       sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
@@ -206,7 +229,7 @@ app.get('/api/businesses', async (req, res) => {
     `;
     const params = [];
     if (categorySlug && String(categorySlug).trim()) {
-      sql += ` AND LOWER(TRIM(c.slug)) = LOWER(${addParam(params, String(categorySlug).trim())})`;
+      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
     }
     if (subcategorySlug && String(subcategorySlug).trim()) {
       sql += ` AND LOWER(TRIM(s.slug)) = LOWER(${addParam(params, String(subcategorySlug).trim())})`;
@@ -285,13 +308,26 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
     } = body;
     const featured = body.featured === true || body.featured === 1 || body.featured === '1';
     const category_slug = body.category_slug ?? body.categorySlug;
-    if (!name?.trim() || !String(category_slug || '').trim() || !city?.trim()) {
+    const category_slugs = Array.isArray(body.category_slugs) ? body.category_slugs : [];
+    const normalizedExtra = [...new Set(category_slugs.map((v) => String(v || '').trim()).filter(Boolean))];
+    const slugTrim = String(category_slug || normalizedExtra[0] || '').trim();
+    if (!name?.trim() || !slugTrim || !city?.trim()) {
       return res.status(400).json({ error: 'Nombre, categoría y ciudad son obligatorios' });
     }
-    const slugTrim = String(category_slug).trim();
-    const catResult = await db.query('SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER($1)', [slugTrim]);
-    const catRow = catResult.rows?.[0];
-    if (!catRow) {
+    const allCategorySlugs = [...new Set([slugTrim, ...normalizedExtra].map((v) => String(v || '').trim()).filter(Boolean))];
+    const catResult = await db.query(
+      'SELECT id, slug FROM categories WHERE LOWER(TRIM(slug)) = ANY($1)',
+      [allCategorySlugs.map((v) => v.toLowerCase())]
+    );
+    const catRows = Array.isArray(catResult.rows) ? catResult.rows : [];
+    const catBySlug = new Map(catRows.map((r) => [String(r.slug).trim().toLowerCase(), r.id]));
+    const missing = allCategorySlugs.filter((v) => !catBySlug.has(v.toLowerCase()));
+    if (missing.length > 0) {
+      return res.status(400).json({ error: `Categorías inválidas: ${missing.join(', ')}` });
+    }
+    const category_id = catBySlug.get(slugTrim.toLowerCase());
+    const extraCategoryIds = allCategorySlugs.map((v) => catBySlug.get(v.toLowerCase())).filter(Boolean);
+    if (!category_id) {
       const countResult = await db.query('SELECT COUNT(*)::int AS n FROM categories');
       const countRow = countResult.rows?.[0];
       const total = countRow?.n ?? 0;
@@ -301,7 +337,6 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         : `No hay categoría con slug "${slugTrim}". Revisá que el slug coincida con los de la base.`;
       return res.status(400).json({ error: msg, received_slug: slugTrim });
     }
-    const category_id = catRow.id;
     let subcategory_id = null;
     if (subcategory_slug?.trim()) {
       const subSlug = String(subcategory_slug).trim();
@@ -335,11 +370,11 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
     const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
-    await db.query(
+    const insertRes = await db.query(
       `INSERT INTO businesses (
         category_id, subcategory_id, name, slug, location, city, latitude, longitude,
         description, phone, instagram_url, opening_hours, menu_services, image_url, gallery_images, featured
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16) RETURNING id`,
       [
         category_id,
         subcategory_id,
@@ -359,6 +394,15 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         featured,
       ]
     );
+    const businessId = insertRes.rows?.[0]?.id;
+    if (businessId && extraCategoryIds.length > 0) {
+      for (const catId of extraCategoryIds) {
+        await db.query(
+          'INSERT INTO business_categories (business_id, category_id) VALUES ($1, $2) ON CONFLICT (business_id, category_id) DO NOTHING',
+          [businessId, catId]
+        );
+      }
+    }
     const rowResult = await db.query(
       `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
               CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
@@ -411,6 +455,7 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       ? true
       : (body.featured === false || body.featured === 0 || body.featured === '0' ? false : null);
     const categorySlugParam = body.category_slug ?? body.categorySlug;
+    const categorySlugsParam = Array.isArray(body.category_slugs) ? body.category_slugs : null;
     const existingResult = await db.query(
       'SELECT id, category_id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)',
       [slugParam]
@@ -504,6 +549,28 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       `UPDATE businesses SET ${setParts.join(', ')} WHERE id = $${updates.length}`,
       updates
     );
+    if (categorySlugsParam || categorySlugParam?.trim()) {
+      const slugsToSync = categorySlugsParam
+        ? [...new Set(categorySlugsParam.map((v) => String(v || '').trim()).filter(Boolean))]
+        : [String(categorySlugParam).trim()]
+      if (slugsToSync.length > 0) {
+        const catSync = await db.query(
+          'SELECT id, slug FROM categories WHERE LOWER(TRIM(slug)) = ANY($1)',
+          [slugsToSync.map((v) => v.toLowerCase())]
+        )
+        const catSyncRows = Array.isArray(catSync.rows) ? catSync.rows : []
+        const catIds = [...new Set(catSyncRows.map((r) => r.id))]
+        if (!catIds.includes(category_id)) catIds.unshift(category_id)
+        await db.query('DELETE FROM business_categories WHERE business_id = $1', [existing.id])
+        for (const catId of catIds) {
+          await db.query(
+            'INSERT INTO business_categories (business_id, category_id) VALUES ($1, $2) ON CONFLICT (business_id, category_id) DO NOTHING',
+            [existing.id, catId]
+          )
+        }
+      }
+    }
+
     const rowResult = await db.query(
       `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
               CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,

@@ -4,6 +4,7 @@
 BEGIN;
 
 DROP TABLE IF EXISTS user_favorites;
+DROP TABLE IF EXISTS business_categories;
 DROP TABLE IF EXISTS businesses;
 DROP TABLE IF EXISTS subcategories;
 DROP TABLE IF EXISTS categories;
@@ -79,6 +80,20 @@ CREATE TABLE businesses (
 CREATE INDEX idx_business_category ON businesses (category_id);
 CREATE INDEX idx_business_subcategory ON businesses (subcategory_id);
 CREATE INDEX idx_business_city ON businesses (city);
+
+CREATE TABLE business_categories (
+  business_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (business_id, category_id),
+  CONSTRAINT fk_bc_business
+    FOREIGN KEY (business_id) REFERENCES businesses (id) ON DELETE CASCADE,
+  CONSTRAINT fk_bc_category
+    FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_bc_business ON business_categories (business_id);
+CREATE INDEX idx_bc_category ON business_categories (category_id);
 
 CREATE TABLE user_favorites (
   id SERIAL PRIMARY KEY,

@@ -241,6 +241,7 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
   const cities = initialCities?.length ? initialCities : STATIC_CITIES
   const [subcategories, setSubcategories] = useState<{ slug: string; title: string }[]>([])
   const [categorySlug, setCategorySlug] = useState<string>("")
+  const [selectedCategorySlugs, setSelectedCategorySlugs] = useState<string[]>([])
   const [subcategorySlug, setSubcategorySlug] = useState<string>("")
   const [city, setCity] = useState<string>("")
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
@@ -261,7 +262,12 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
   // Pre-llenar estado en modo edición
   useEffect(() => {
     if (!initialData) return
-    setCategorySlug(initialData.category_slug ?? "")
+    const primary = initialData.category_slug ?? ""
+    const multi = Array.isArray(initialData.category_slugs)
+      ? initialData.category_slugs.filter((v) => typeof v === "string" && v.trim())
+      : []
+    setCategorySlug(primary)
+    setSelectedCategorySlugs(multi.length > 0 ? [...new Set(multi)] : (primary ? [primary] : []))
     setSubcategorySlug(initialData.subcategory_slug ?? "")
     setCity(initialData.city ?? "")
     setFeatured(Boolean(initialData.featured))
@@ -296,7 +302,12 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     })
   }, [categorySlug, initialData])
 
-    const uploadImage = useCallback(
+  useEffect(() => {
+    if (!categorySlug) return
+    setSelectedCategorySlugs((prev) => (prev.includes(categorySlug) ? prev : [categorySlug, ...prev]))
+  }, [categorySlug])
+
+  const uploadImage = useCallback(
     async (file: File): Promise<{ url?: string; error?: string }> => {
       if (!token) {
         return { error: "Iniciá sesión como administrador para subir fotos." }
@@ -367,6 +378,14 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const toggleExtraCategory = (slug: string, checked: boolean) => {
+    setSelectedCategorySlugs((prev) => {
+      const next = checked ? [...new Set([...prev, slug])] : prev.filter((s) => s !== slug)
+      if (!next.includes(categorySlug) && categorySlug) next.unshift(categorySlug)
+      return next
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!token || user?.role !== "admin") {
@@ -376,8 +395,8 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     const form = e.currentTarget
     const name = (form.querySelector('[name="name"]') as HTMLInputElement)?.value?.trim()
     const cityVal = city
-    if (!name || !categorySlug || !cityVal) {
-      setError("Nombre, categoría y ciudad son obligatorios.")
+    if (!name || !categorySlug || !cityVal || selectedCategorySlugs.length === 0) {
+      setError("Nombre, al menos una categoría y ciudad son obligatorios.")
       return
     }
     setSubmitting(true)
@@ -386,6 +405,7 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     const payload = {
       name,
       category_slug: categorySlug,
+      category_slugs: selectedCategorySlugs,
       subcategory_slug: subcategorySlug || undefined,
       city: cityVal,
       location: (form.querySelector('[name="location"]') as HTMLInputElement)?.value?.trim() || undefined,
@@ -470,7 +490,13 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
                 <div className="flex flex-wrap items-center gap-2">
                   <select
                     value={categorySlug}
-                    onChange={(e) => setCategorySlug(e.target.value)}
+                    onChange={(e) => {
+                      const next = e.target.value
+                      setCategorySlug(next)
+                      if (next) {
+                        setSelectedCategorySlugs((prev) => [...new Set([next, ...prev])])
+                      }
+                    }}
                     required
                     className="w-[180px] rounded-lg border border-primary-foreground/40 bg-card/20 px-3 py-2 text-sm text-primary-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
                   >
@@ -718,6 +744,26 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-muted-foreground">Categorías adicionales</Label>
+                <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-border bg-background p-2">
+                  {categories.filter((cat) => cat.slug !== categorySlug).map((cat) => {
+                    const checked = selectedCategorySlugs.includes(cat.slug)
+                    return (
+                      <label key={cat.slug} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => toggleExtraCategory(cat.slug, e.target.checked)}
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                        <span className="text-foreground">{cat.title}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">El local aparecerá en todas las categorías seleccionadas.</p>
               </div>
               <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-background/50 px-3 py-2.5 text-sm">
                 <input

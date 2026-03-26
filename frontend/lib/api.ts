@@ -166,6 +166,7 @@ export async function fetchBusinessBySlug(slug: string): Promise<BusinessDetailA
 export type CreateBusinessPayload = {
   name: string
   category_slug: string
+  category_slugs?: string[]
   subcategory_slug?: string
   city: string
   location?: string
@@ -205,6 +206,7 @@ export async function createBusiness(
 export type UpdateBusinessPayload = {
   name?: string
   category_slug?: string
+  category_slugs?: string[]
   subcategory_slug?: string
   city?: string
   location?: string
