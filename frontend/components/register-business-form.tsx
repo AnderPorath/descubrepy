@@ -487,7 +487,7 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
                   placeholder="Nombre de la empresa *"
                   required
                   defaultValue={initialData?.name ?? ""}
-                  className="max-w-md border-0 border-b-2 border-primary-foreground/50 bg-transparent text-2xl font-bold text-primary-foreground placeholder:text-primary-foreground/70 md:text-3xl lg:text-4xl"
+                  className="max-w-md rounded-lg border border-primary-foreground/40 bg-black/40 px-3 py-2 text-2xl font-bold text-white caret-white shadow-sm placeholder:text-white/70 focus-visible:ring-2 focus-visible:ring-primary-foreground/60 md:text-3xl lg:text-4xl"
                 />
                 <select
                   value={city}
