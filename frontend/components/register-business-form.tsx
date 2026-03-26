@@ -296,60 +296,15 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     })
   }, [categorySlug, initialData])
 
-  // Banner: resolución recomendada 1920×768 px. Se guarda en alta calidad (JPEG 92%).
-  const BANNER_MAX_W = 1920
-  const BANNER_MAX_H = 768
-  const BANNER_JPEG_QUALITY = 0.92
-
-  const resizeImageToBlob = (file: File): Promise<Blob> => {
-    return new Promise((resolve) => {
-      const img = new window.Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        URL.revokeObjectURL(url)
-        let w = img.width
-        let h = img.height
-        if (w > BANNER_MAX_W || h > BANNER_MAX_H) {
-          if (w > h) {
-            h = Math.round((h * BANNER_MAX_W) / w)
-            w = BANNER_MAX_W
-          } else {
-            w = Math.round((w * BANNER_MAX_H) / h)
-            h = BANNER_MAX_H
-          }
-        }
-        const canvas = document.createElement("canvas")
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext("2d")
-        if (!ctx) {
-          resolve(file)
-          return
-        }
-        ctx.drawImage(img, 0, 0, w, h)
-        canvas.toBlob(
-          (blob) => (blob ? resolve(blob) : resolve(file)),
-          "image/jpeg",
-          BANNER_JPEG_QUALITY
-        )
-      }
-      img.onerror = () => {
-        URL.revokeObjectURL(url)
-        resolve(file)
-      }
-      img.src = url
-    })
-  }
-
-  const uploadImage = useCallback(
+    const uploadImage = useCallback(
     async (file: File): Promise<{ url?: string; error?: string }> => {
       if (!token) {
         return { error: "Iniciá sesión como administrador para subir fotos." }
       }
       try {
-        const blob = await resizeImageToBlob(file)
         const form = new FormData()
-        form.append("image", blob, file.name || "image.jpg")
+        // Subir el archivo original para preservar la mejor calidad posible.
+        form.append("image", file, file.name || "image.jpg")
         const res = await fetch("/api/upload", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
