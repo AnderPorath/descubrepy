@@ -135,6 +135,8 @@ export type BusinessDetailApi = BusinessApi & {
   latitude?: number | null
   longitude?: number | null
   subcategory_slug?: string | null
+  /** Todas las subcategorías asociadas (principal + adicionales). */
+  subcategory_slugs?: string[] | null
 }
 
 export async function fetchBusinesses(
@@ -166,7 +168,8 @@ export async function fetchBusinessBySlug(slug: string): Promise<BusinessDetailA
 export type CreateBusinessPayload = {
   name: string
   category_slug: string
-  category_slugs?: string[]
+  /** Slugs de subcategoría adicionales (misma categoría; la principal va en subcategory_slug). */
+  subcategory_slugs?: string[]
   subcategory_slug?: string
   city: string
   location?: string
@@ -206,7 +209,7 @@ export async function createBusiness(
 export type UpdateBusinessPayload = {
   name?: string
   category_slug?: string
-  category_slugs?: string[]
+  subcategory_slugs?: string[]
   subcategory_slug?: string
   city?: string
   location?: string
