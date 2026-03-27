@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/auth-context"
-import { fetchSubcategories, createBusiness, updateBusiness } from "@/lib/api"
+import { fetchSubcategories, fetchCities, createBusiness, updateBusiness } from "@/lib/api"
 import type { BusinessDetailApi } from "@/lib/api"
 import { Upload, X, Loader2, CheckCircle2, Clock, MapPin, Phone } from "lucide-react"
 
@@ -238,7 +238,9 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
   const router = useRouter()
   const { user, token } = useAuth()
   const categories = initialCategories?.length ? initialCategories : STATIC_CATEGORIES
-  const cities = initialCities?.length ? initialCities : STATIC_CITIES
+  const [cityOptions, setCityOptions] = useState<string[]>(
+    initialCities?.length ? initialCities : STATIC_CITIES
+  )
   const [subcategories, setSubcategories] = useState<{ slug: string; title: string }[]>([])
   const [categorySlug, setCategorySlug] = useState<string>("")
   /** Subcategorías extra (misma categoría; la principal es `subcategorySlug`). */
@@ -284,6 +286,22 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     setMapLat(Number.isFinite(lat) ? lat : null)
     setMapLng(Number.isFinite(lng) ? lng : null)
   }, [initialData])
+
+  useEffect(() => {
+    let mounted = true
+    fetchCities().then((remoteCities) => {
+      if (!mounted) return
+      const base = initialCities?.length ? initialCities : STATIC_CITIES
+      const merged = [...new Set([...base, ...remoteCities].map((v) => String(v || "").trim()).filter(Boolean))]
+      setCityOptions(merged)
+    }).catch(() => {
+      const base = initialCities?.length ? initialCities : STATIC_CITIES
+      if (mounted) setCityOptions(base)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [initialCities])
 
   useEffect(() => {
     if (!categorySlug) {
@@ -522,7 +540,7 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
                   className="w-[200px] rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
                 >
                   <option value="">Ciudad *</option>
-                  {cities.map((c) => (
+                  {cityOptions.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
