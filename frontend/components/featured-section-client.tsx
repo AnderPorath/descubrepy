@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
@@ -13,6 +13,7 @@ export function FeaturedSectionClient() {
   const [featured, setFeatured] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
   const [failedImageIds, setFailedImageIds] = useState<Set<number>>(new Set())
+  const carouselRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -25,6 +26,24 @@ export function FeaturedSectionClient() {
       })
     return () => { cancelled = true }
   }, [])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el || featured.length <= 1) return
+
+    const interval = window.setInterval(() => {
+      const card = el.querySelector<HTMLElement>("[data-featured-card]")
+      const step = card ? card.offsetWidth + 24 : Math.round(el.clientWidth * 0.85)
+      const maxScrollLeft = Math.max(0, el.scrollWidth - el.clientWidth)
+      const next = el.scrollLeft + step
+      el.scrollTo({
+        left: next >= maxScrollLeft ? 0 : next,
+        behavior: "smooth",
+      })
+    }, 3500)
+
+    return () => window.clearInterval(interval)
+  }, [featured.length])
 
   return (
     <section id="destacados" className="bg-secondary py-20 lg:py-28">
@@ -49,13 +68,16 @@ export function FeaturedSectionClient() {
           </Button>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          ref={carouselRef}
+          className="mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
           {loading ? (
-            <div className="col-span-full flex justify-center py-12">
+            <div className="flex w-full justify-center py-12">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
           ) : featured.length === 0 ? (
-            <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
+            <p className="w-full py-8 text-center text-sm text-muted-foreground">
               Aún no hay negocios destacados. Los que marques como destacados al crear o editar aparecerán aquí.
             </p>
           ) : (
@@ -63,7 +85,8 @@ export function FeaturedSectionClient() {
               <Link
                 key={business.id}
                 href={`/negocio/${business.slug}`}
-                className="group block overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+                data-featured-card
+                className="group block w-[85vw] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 sm:w-[360px] lg:w-[320px]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
