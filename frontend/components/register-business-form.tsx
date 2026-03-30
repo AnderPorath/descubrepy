@@ -109,7 +109,7 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
     { slug: "hamburgueseria", title: "Hamburguesería" },
     { slug: "parrilla", title: "Parrilla" },
     { slug: "sushi", title: "Sushi" },
-    { slug: "comida-rapida", title: "Comida rápida" },
+    { slug: "comida-rapida", title: "Lomiterías" },
     { slug: "comida-internacional", title: "Comida internacional" },
     { slug: "postres-reposteria", title: "Postres y repostería" },
   ],

@@ -67,7 +67,7 @@ INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'sushi', 'Sushi', 4 FROM categories WHERE slug = 'gastronomia' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'comida-rapida', 'Comida rápida', 5 FROM categories WHERE slug = 'gastronomia' LIMIT 1
+SELECT id, 'comida-rapida', 'Lomiterías', 5 FROM categories WHERE slug = 'gastronomia' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'comida-internacional', 'Comida internacional', 6 FROM categories WHERE slug = 'gastronomia' LIMIT 1
