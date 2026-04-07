@@ -22,7 +22,7 @@ type Props = {
 
 const FALLBACK_CITIES = [
   "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
-  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby",
+  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby", "San Antonio",
 ]
 
 export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {

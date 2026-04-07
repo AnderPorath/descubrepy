@@ -30,7 +30,7 @@ const FALLBACK_CITIES = [
   "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
   "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby",
   "Pedro Juan Caballero", "Villarrica", "Coronel Oviedo", "Concepción", "Pilar",
-  "Hernandarias", "Presidente Franco", "Itauguá", "Mariano Roque Alonso", "Villa Elisa",
+  "Hernandarias", "Presidente Franco", "Itauguá", "Mariano Roque Alonso", "Villa Elisa", "San Antonio",
 ]
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [

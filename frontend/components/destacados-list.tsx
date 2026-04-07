@@ -24,7 +24,7 @@ import {
 
 const FALLBACK_CITIES = [
   "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
-  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby",
+  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby", "San Antonio",
 ]
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [

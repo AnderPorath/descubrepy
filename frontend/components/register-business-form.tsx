@@ -78,7 +78,7 @@ function openingHoursToSchedule(text: string | null | undefined): DaySchedule[] 
 // Listas estáticas (mismo orden que schema.sql) para que siempre aparezcan opciones
 const STATIC_CITIES = [
   "Asuncion", "Ciudad del Este", "Encarnacion", "Luque", "San Lorenzo",
-  "Lambare", "Fernando de la Mora", "Capiata", "Mariano Roque Alonso",
+  "Lambare", "Fernando de la Mora", "Capiata", "Mariano Roque Alonso", "San Antonio",
 ]
 const STATIC_CATEGORIES: { slug: string; title: string }[] = [
   { slug: "gastronomia", title: "Gastronomía" },

@@ -42,7 +42,8 @@ INSERT INTO cities (city, sort_order) VALUES
 ('Presidente Franco', 17),
 ('Itauguá', 18),
 ('Mariano Roque Alonso', 19),
-('Villa Elisa', 20);
+('Villa Elisa', 20),
+('San Antonio', 21);
 
 -- Verificar
 SELECT * FROM cities ORDER BY sort_order;
