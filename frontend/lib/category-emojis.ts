@@ -31,7 +31,7 @@ export const SUBCATEGORY_EMOJI: Record<string, string> = {
   // Gastronomía
   "gastronomia/pizzeria": "🍕",
   "gastronomia/hamburgueseria": "🍔",
-  "gastronomia/parrilla": "🥩",
+  "gastronomia/parrilla": "🍗",
   "gastronomia/sushi": "🍣",
   "gastronomia/comida-rapida": "🌯",
   "gastronomia/comida-internacional": "🍽️",

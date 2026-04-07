@@ -34,7 +34,7 @@ const FALLBACK_SUBCATEGORIES: Record<string, Array<{ slug: string; title: string
   gastronomia: [
     { slug: "pizzeria", title: "Pizzería" },
     { slug: "hamburgueseria", title: "Hamburguesería" },
-    { slug: "parrilla", title: "Parrilla" },
+    { slug: "parrilla", title: "Pollería" },
     { slug: "sushi", title: "Sushi" },
     { slug: "comida-rapida", title: "Comida rápida" },
     { slug: "comida-internacional", title: "Comida internacional" },

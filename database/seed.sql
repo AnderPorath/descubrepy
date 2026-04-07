@@ -62,7 +62,7 @@ INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'hamburgueseria', 'Hamburguesería', 2 FROM categories WHERE slug = 'gastronomia' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'parrilla', 'Parrilla', 3 FROM categories WHERE slug = 'gastronomia' LIMIT 1
+SELECT id, 'parrilla', 'Pollería', 3 FROM categories WHERE slug = 'gastronomia' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'sushi', 'Sushi', 4 FROM categories WHERE slug = 'gastronomia' LIMIT 1
