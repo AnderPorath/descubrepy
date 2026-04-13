@@ -28,6 +28,13 @@ export type CategoryApi = { id: number; slug: string; title: string; description
 
 export type SubcategoryApi = { id: number; slug: string; title: string; sort_order: number; business_count?: number }
 
+function normalizeSubcategoryTitle(sub: SubcategoryApi): SubcategoryApi {
+  if (sub.slug === "comida-internacional") {
+    return { ...sub, title: "Heladerías" }
+  }
+  return sub
+}
+
 /** Categorías sin caché para que el business_count se actualice al eliminar/crear negocios. */
 export async function fetchCategories(): Promise<CategoryApi[]> {
   try {
@@ -49,7 +56,9 @@ export async function fetchSubcategories(categorySlug: string): Promise<Subcateg
   try {
     const res = await fetch(`${API_URL}/api/subcategories?category=${encodeURIComponent(categorySlug.trim())}`, { cache: 'no-store' })
     if (!res.ok) return []
-    return await res.json()
+    const data = await res.json()
+    if (!Array.isArray(data)) return []
+    return data.map((sub) => normalizeSubcategoryTitle(sub as SubcategoryApi))
   } catch {
     return []
   }
