@@ -1,16 +1,22 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/auth-context"
-import { fetchSubcategories, fetchCities, createBusiness, updateBusiness } from "@/lib/api"
+import { fetchSubcategories, createBusiness, updateBusiness } from "@/lib/api"
 import type { BusinessDetailApi } from "@/lib/api"
 import { Upload, X, Loader2, CheckCircle2, Clock, MapPin, Phone } from "lucide-react"
+import {
+  canonicalizeDistrictName,
+  findDepartmentKeyForDistrict,
+  getDepartmentsGrouped,
+  getDistrictsForDepartment,
+} from "@/lib/paraguay-departments"
 
 const MapPinPicker = dynamic(
   () => import("@/components/map-pin-picker").then((m) => ({ default: m.MapPinPicker })),
@@ -75,11 +81,6 @@ function openingHoursToSchedule(text: string | null | undefined): DaySchedule[] 
   return result
 }
 
-// Listas estáticas (mismo orden que schema.sql) para que siempre aparezcan opciones
-const STATIC_CITIES = [
-  "Asuncion", "Ciudad del Este", "Encarnacion", "Luque", "San Lorenzo",
-  "Lambare", "Fernando de la Mora", "Capiata", "Mariano Roque Alonso", "San Antonio", "Nueva Italia",
-]
 const STATIC_CATEGORIES: { slug: string; title: string }[] = [
   { slug: "gastronomia", title: "Gastronomía" },
   { slug: "belleza-y-spa", title: "Belleza y Spa" },
@@ -227,25 +228,22 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
 
 type Props = {
   initialCategories?: { slug: string; title: string }[]
-  initialCities?: string[]
   /** Modo edición: slug del negocio y datos actuales (misma interfaz que crear) */
   editSlug?: string
   initialData?: BusinessDetailApi | null
 }
 
-export function RegisterBusinessForm({ initialCategories = [], initialCities = [], editSlug, initialData }: Props) {
+export function RegisterBusinessForm({ initialCategories = [], editSlug, initialData }: Props) {
   const isEdit = Boolean(editSlug && initialData)
   const router = useRouter()
   const { user, token } = useAuth()
   const categories = initialCategories?.length ? initialCategories : STATIC_CATEGORIES
-  const [cityOptions, setCityOptions] = useState<string[]>(
-    initialCities?.length ? initialCities : STATIC_CITIES
-  )
   const [subcategories, setSubcategories] = useState<{ slug: string; title: string }[]>([])
   const [categorySlug, setCategorySlug] = useState<string>("")
   /** Subcategorías extra (misma categoría; la principal es `subcategorySlug`). */
   const [selectedExtraSubcategorySlugs, setSelectedExtraSubcategorySlugs] = useState<string[]>([])
   const [subcategorySlug, setSubcategorySlug] = useState<string>("")
+  const [departmentKey, setDepartmentKey] = useState<string>("")
   const [city, setCity] = useState<string>("")
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string>("")
@@ -261,6 +259,11 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
   const [mapLat, setMapLat] = useState<number | null>(null)
   const [mapLng, setMapLng] = useState<number | null>(null)
   const [featured, setFeatured] = useState(false)
+  const departmentGroups = useMemo(() => getDepartmentsGrouped(), [])
+  const districtOptions = useMemo(
+    () => (departmentKey ? getDistrictsForDepartment(departmentKey) : []),
+    [departmentKey]
+  )
 
   // Pre-llenar estado en modo edición
   useEffect(() => {
@@ -274,7 +277,9 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     setSelectedExtraSubcategorySlugs(
       [...new Set(allSubs.filter((s) => s !== primarySub))]
     )
-    setCity(initialData.city ?? "")
+    const initialDistrict = canonicalizeDistrictName(initialData.city ?? "")
+    setCity(initialDistrict)
+    setDepartmentKey(findDepartmentKeyForDistrict(initialDistrict) ?? "")
     setFeatured(Boolean(initialData.featured))
     setCoverUrl(initialData.image_url ?? "")
     setCoverPreview(initialData.image_url ?? null)
@@ -288,20 +293,15 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
   }, [initialData])
 
   useEffect(() => {
-    let mounted = true
-    fetchCities().then((remoteCities) => {
-      if (!mounted) return
-      const base = initialCities?.length ? initialCities : STATIC_CITIES
-      const merged = [...new Set([...base, ...remoteCities].map((v) => String(v || "").trim()).filter(Boolean))]
-      setCityOptions(merged)
-    }).catch(() => {
-      const base = initialCities?.length ? initialCities : STATIC_CITIES
-      if (mounted) setCityOptions(base)
-    })
-    return () => {
-      mounted = false
+    if (!departmentKey.trim()) {
+      if (city) setCity("")
+      return
     }
-  }, [initialCities])
+    const districts = getDistrictsForDepartment(departmentKey)
+    if (city && !districts.includes(city)) {
+      setCity("")
+    }
+  }, [departmentKey, city])
 
   useEffect(() => {
     if (!categorySlug) {
@@ -415,8 +415,8 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
     const form = e.currentTarget
     const name = (form.querySelector('[name="name"]') as HTMLInputElement)?.value?.trim()
     const cityVal = city
-    if (!name || !categorySlug || !cityVal) {
-      setError("Nombre, categoría y ciudad son obligatorios.")
+    if (!name || !categorySlug || !departmentKey || !cityVal) {
+      setError("Nombre, categoría, departamento y distrito son obligatorios.")
       return
     }
     setSubmitting(true)
@@ -427,7 +427,7 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
       category_slug: categorySlug,
       subcategory_slugs: selectedExtraSubcategorySlugs,
       subcategory_slug: subcategorySlug || undefined,
-      city: cityVal,
+      city: canonicalizeDistrictName(cityVal),
       location: (form.querySelector('[name="location"]') as HTMLInputElement)?.value?.trim() || undefined,
       latitude: mapLat,
       longitude: mapLng,
@@ -533,19 +533,44 @@ export function RegisterBusinessForm({ initialCategories = [], initialCities = [
                   defaultValue={initialData?.name ?? ""}
                   className="max-w-md rounded-lg border border-primary-foreground/40 bg-black/40 px-3 py-2 text-2xl font-bold text-white caret-white shadow-sm placeholder:text-white/70 focus-visible:ring-2 focus-visible:ring-primary-foreground/60 md:text-3xl lg:text-4xl"
                 />
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  className="w-[200px] rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
-                >
-                  <option value="">Ciudad *</option>
-                  {cityOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={departmentKey}
+                    onChange={(e) => {
+                      setDepartmentKey(e.target.value)
+                      setCity("")
+                    }}
+                    required
+                    className="w-[220px] rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/50"
+                  >
+                    <option value="">Departamento *</option>
+                    {departmentGroups.map((group) => (
+                      <optgroup key={group.label} label={group.label}>
+                        {group.items.map((dept) => (
+                          <option key={dept.key} value={dept.key}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    required
+                    disabled={!departmentKey}
+                    className="w-[220px] rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary-foreground/50 disabled:opacity-60"
+                  >
+                    <option value="">
+                      {departmentKey ? "Distrito *" : "Primero elegí departamento"}
                     </option>
-                  ))}
-                </select>
+                    {districtOptions.map((district) => (
+                      <option key={`${departmentKey}-${district}`} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <label className="cursor-pointer rounded-lg bg-card/20 px-3 py-2 backdrop-blur-sm text-sm text-primary-foreground hover:bg-card/30">
                 <Upload className="mr-1.5 inline h-4 w-4" />

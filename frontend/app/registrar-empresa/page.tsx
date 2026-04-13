@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { RegisterBusinessForm } from "@/components/register-business-form"
-import { fetchCategoriesFresh, fetchCitiesFresh } from "@/lib/api"
+import { fetchCategoriesFresh } from "@/lib/api"
 
 export const metadata = {
   title: "Registrar empresa - DescubrePY",
@@ -10,10 +10,7 @@ export const metadata = {
 }
 
 export default async function RegistrarEmpresaPage() {
-  const [categories, cities] = await Promise.all([
-    fetchCategoriesFresh(),
-    fetchCitiesFresh(),
-  ])
+  const categories = await fetchCategoriesFresh()
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +26,7 @@ export default async function RegistrarEmpresaPage() {
         </div>
       </div>
 
-      <RegisterBusinessForm initialCategories={categories} initialCities={cities} />
+      <RegisterBusinessForm initialCategories={categories} />
 
       <Footer />
     </div>
