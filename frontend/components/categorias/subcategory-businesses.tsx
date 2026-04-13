@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { BusinessCard } from "@/components/business-card"
 import { fetchBusinesses } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import type { BusinessApi } from "@/lib/api"
 import { CategoryIcon } from "@/components/category-icon"
+import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
 
 type Props = {
   categorySlug: string
@@ -18,12 +19,19 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
   const [departmentKey, setDepartmentKey] = useState("")
   const [city, setCity] = useState("")
 
+  const departmentCities = useMemo(() => {
+    if (city.trim()) return undefined
+    if (!departmentKey.trim()) return undefined
+    const list = getDistrictsForDepartment(departmentKey)
+    return list.length > 0 ? list : undefined
+  }, [city, departmentKey])
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     const subcategorySlug = subslug === "todos" ? undefined : subslug
     const cityFilter = city.trim() || undefined
-    fetchBusinesses(categorySlug, subcategorySlug, cityFilter)
+    fetchBusinesses(categorySlug, subcategorySlug, cityFilter, undefined, departmentCities)
       .then((list) => {
         const arr = list ?? []
         const sorted = [...arr].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
@@ -33,7 +41,7 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [categorySlug, subslug, city])
+  }, [categorySlug, subslug, city, departmentCities])
 
   if (loading) {
     return (
@@ -83,8 +91,8 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
         <CategoryIcon categorySlug={categorySlug} subcategorySlug={subslug} size="xl" variant="muted" />
         <h2 className="text-xl font-bold text-foreground">Próximamente</h2>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-          {city.trim()
-            ? "No hay negocios en esta subcategoría para el distrito elegido. Probá otra ubicación."
+          {city.trim() || departmentKey.trim()
+            ? "No hay negocios en esta subcategoría para la ubicación elegida. Probá otro departamento o distrito."
             : "Estamos agregando negocios en esta subcategoría. Volvé pronto."}
         </p>
       </div>

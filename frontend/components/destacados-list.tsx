@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { BusinessCard } from "@/components/business-card"
 import {
@@ -12,6 +12,7 @@ import {
   type SubcategoryApi,
 } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
+import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
 import { Star, Tag, Layers } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import {
@@ -64,16 +65,24 @@ export function DestacadosList() {
     }
   }, [category, loadSubcategories])
 
+  const departmentCities = useMemo(() => {
+    if (city.trim()) return undefined
+    if (!departmentKey.trim()) return undefined
+    const list = getDistrictsForDepartment(departmentKey)
+    return list.length > 0 ? list : undefined
+  }, [city, departmentKey])
+
   useEffect(() => {
     setLoading(true)
     fetchFeaturedFiltered({
       city: city.trim() || undefined,
+      cities: departmentCities,
       category: category.trim() || undefined,
       subcategory: subcategory.trim() || undefined,
     })
       .then((list) => setFeatured(Array.isArray(list) ? list : []))
       .finally(() => setLoading(false))
-  }, [city, category, subcategory])
+  }, [city, category, subcategory, departmentCities])
 
   if (loading && featured.length === 0) {
     return (

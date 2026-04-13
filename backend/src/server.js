@@ -68,6 +68,31 @@ function sqlNormalizeCity(column) {
   return `REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(${c}, 'á|à|ä|â', 'a', 'g'), 'é|è|ë|ê', 'e', 'g'), 'í|ì|ï|î', 'i', 'g'), 'ó|ò|ö|ô', 'o', 'g'), 'ú|ù|ü|û', 'u', 'g'), 'ñ', 'n', 'g')`;
 }
 
+/**
+ * Filtro por una ciudad o por varias (ej. todos los distritos de un departamento).
+ * citiesParam: nombres unidos por | (no debe aparecer en nombres de distrito).
+ */
+function appendLocationCityFilter(sql, params, cityName, citiesParam) {
+  const single = cityName && String(cityName).trim();
+  if (single) {
+    const norm = normalizeCity(cityName);
+    sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norm)}`;
+    return sql;
+  }
+  const raw = citiesParam && String(citiesParam).trim();
+  if (!raw) return sql;
+  const parts = raw.split('|').map((s) => s.trim()).filter(Boolean);
+  const norms = [...new Set(parts.map(normalizeCity).filter(Boolean))];
+  if (norms.length === 0) return sql;
+  if (norms.length === 1) {
+    sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norms[0])}`;
+    return sql;
+  }
+  const ors = norms.map((n) => `${sqlNormalizeCity('b.city')} = ${addParam(params, n)}`);
+  sql += ` AND (${ors.join(' OR ')})`;
+  return sql;
+}
+
 async function ensureBusinessCategoriesSchema() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS business_categories (
@@ -222,7 +247,7 @@ app.get('/api/subcategories', async (req, res) => {
 // Negocios destacados (solo los que tienen featured = 1). Filtros: ?city=&category=&subcategory=
 app.get('/api/featured', async (req, res) => {
   try {
-    const { city: cityName, category: categorySlug, subcategory: subcategorySlug } = req.query || {};
+    const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug } = req.query || {};
     let sql = `
       SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
@@ -244,10 +269,7 @@ app.get('/api/featured', async (req, res) => {
         WHERE bs.business_id = b.id AND LOWER(TRIM(s2.slug)) = LOWER(${addParam(params, subSlug)})
       )`;
     }
-    if (cityName && String(cityName).trim()) {
-      const norm = normalizeCity(cityName);
-      sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norm)}`;
-    }
+    sql = appendLocationCityFilter(sql, params, cityName, citiesParam);
     sql += ' ORDER BY b.rating DESC LIMIT 50';
     const result = await db.query(sql, params);
     res.json(result.rows);
@@ -273,7 +295,7 @@ app.get('/api/cities', async (req, res) => {
 // Listar negocios (opcional: ?category=slug&subcategory=slug&city=nombre&q=busqueda)
 app.get('/api/businesses', async (req, res) => {
   try {
-    const { category: categorySlug, subcategory: subcategorySlug, city: cityName, q } = req.query || {};
+    const { category: categorySlug, subcategory: subcategorySlug, city: cityName, cities: citiesParam, q } = req.query || {};
     let sql = `
       SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
@@ -295,10 +317,7 @@ app.get('/api/businesses', async (req, res) => {
         WHERE bs.business_id = b.id AND LOWER(TRIM(s2.slug)) = LOWER(${addParam(params, subSlug)})
       )`;
     }
-    if (cityName && String(cityName).trim()) {
-      const norm = normalizeCity(cityName);
-      sql += ` AND ${sqlNormalizeCity('b.city')} = ${addParam(params, norm)}`;
-    }
+    sql = appendLocationCityFilter(sql, params, cityName, citiesParam);
     if (q && String(q).trim()) {
       const term = `%${String(q).trim()}%`;
       sql += ` AND (b.name ILIKE ${addParam(params, term)} OR b.location ILIKE ${addParam(params, term)} OR b.city ILIKE ${addParam(params, term)})`;

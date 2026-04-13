@@ -60,11 +60,21 @@ export async function fetchFeatured() {
 }
 
 /** Destacados con filtros (ciudad, categoría, subcategoría) */
-export type FeaturedFilters = { city?: string; category?: string; subcategory?: string }
+export type FeaturedFilters = {
+  city?: string
+  /** Si no hay ciudad concreta: distritos del departamento (se envían como cities= en la API) */
+  cities?: string[]
+  category?: string
+  subcategory?: string
+}
 
 export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<BusinessApi[]> {
   const params = new URLSearchParams()
-  if (filters?.city?.trim()) params.set('city', filters.city.trim())
+  if (filters?.city?.trim()) {
+    params.set('city', filters.city.trim())
+  } else if (filters?.cities && filters.cities.length > 0) {
+    params.set('cities', filters.cities.map((c) => c.trim()).filter(Boolean).join('|'))
+  }
   if (filters?.category?.trim()) params.set('category', filters.category.trim())
   if (filters?.subcategory?.trim()) params.set('subcategory', filters.subcategory.trim())
   const query = params.toString()
@@ -143,12 +153,18 @@ export async function fetchBusinesses(
   categorySlug?: string,
   subcategorySlug?: string,
   city?: string,
-  query?: string
+  query?: string,
+  /** Sin distrito concreto: todos los distritos del departamento elegido */
+  cities?: string[]
 ): Promise<BusinessApi[]> {
   const params = new URLSearchParams()
   if (categorySlug) params.set('category', categorySlug)
   if (subcategorySlug) params.set('subcategory', subcategorySlug)
-  if (city?.trim()) params.set('city', city.trim())
+  if (city?.trim()) {
+    params.set('city', city.trim())
+  } else if (cities && cities.length > 0) {
+    params.set('cities', cities.map((c) => c.trim()).filter(Boolean).join('|'))
+  }
   if (query?.trim()) params.set('q', query.trim())
   const qs = params.toString()
   return safeFetch<BusinessApi[]>(`${API_URL}/api/businesses${qs ? `?${qs}` : ''}`, [])

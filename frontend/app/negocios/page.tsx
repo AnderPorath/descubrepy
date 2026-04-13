@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react"
 import { Search, SlidersHorizontal, Tag, Layers } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -15,7 +15,11 @@ import {
   type CategoryApi,
   type SubcategoryApi,
 } from "@/lib/api"
-import { canonicalizeDistrictName, findDepartmentKeyForDistrict } from "@/lib/paraguay-departments"
+import {
+  canonicalizeDistrictName,
+  findDepartmentKeyForDistrict,
+  getDistrictsForDepartment,
+} from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import {
   Select,
@@ -225,20 +229,27 @@ function NegociosContent() {
     if (!category.trim()) setSubcategory("")
   }, [category])
 
+  const departmentCities = useMemo(() => {
+    if (city.trim()) return undefined
+    if (!departmentKey.trim()) return undefined
+    const list = getDistrictsForDepartment(departmentKey)
+    return list.length > 0 ? list : undefined
+  }, [city, departmentKey])
+
   useEffect(() => {
     setLoading(true)
     const cat = category.trim() || undefined
     const sub = subcategory.trim() || undefined
     const c = city.trim() || undefined
     const q = query.trim() || undefined
-    fetchBusinesses(cat, sub, c, q).then((data) => {
+    fetchBusinesses(cat, sub, c, q, departmentCities).then((data) => {
       const sorted = [...(data ?? [])].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
       setBusinesses(sorted)
       setLoading(false)
     })
-  }, [category, subcategory, city, query])
+  }, [category, subcategory, city, query, departmentCities])
 
-  const hasActiveFilters = city || category || subcategory || query
+  const hasActiveFilters = city || departmentKey || category || subcategory || query
 
   return (
     <main className="flex-1">
