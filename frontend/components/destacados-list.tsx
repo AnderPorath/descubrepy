@@ -13,7 +13,7 @@ import {
 } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
-import { Star, Tag, Layers, Search } from "lucide-react"
+import { Star, Tag, Layers } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -38,7 +38,6 @@ export function DestacadosList() {
   const [city, setCity] = useState("")
   const [category, setCategory] = useState("")
   const [subcategory, setSubcategory] = useState("")
-  const [query, setQuery] = useState("")
   const [categories, setCategories] = useState<CategoryApi[]>(FALLBACK_CATEGORIES)
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
 
@@ -80,11 +79,10 @@ export function DestacadosList() {
       cities: departmentCities,
       category: category.trim() || undefined,
       subcategory: subcategory.trim() || undefined,
-      q: query.trim() || undefined,
     })
       .then((list) => setFeatured(Array.isArray(list) ? list : []))
       .finally(() => setLoading(false))
-  }, [city, category, subcategory, departmentCities, query])
+  }, [city, category, subcategory, departmentCities])
 
   if (loading && featured.length === 0) {
     return (
@@ -99,10 +97,10 @@ export function DestacadosList() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-12">
-      {/* Filtros: depto + distrito + buscador en una fila estable; categorías con anchos amplios */}
+      {/* Filtros: ubicación + categoría; flex-wrap si no entra en una línea */}
       <div className="mb-8 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:flex-nowrap lg:items-end lg:gap-3">
-          <div className="flex min-w-0 w-full flex-col gap-4 min-[480px]:flex-row min-[480px]:flex-nowrap min-[480px]:items-end min-[480px]:gap-3 lg:w-auto lg:shrink-0">
+        <div className="flex flex-col flex-wrap items-stretch gap-4 min-[900px]:flex-row min-[900px]:flex-wrap min-[900px]:items-end min-[900px]:gap-3">
+          <div className="flex min-w-0 w-full flex-col gap-4 min-[480px]:flex-row min-[480px]:flex-nowrap min-[480px]:items-end min-[480px]:gap-3 min-[900px]:w-auto min-[900px]:shrink-0">
             <DepartmentDistrictFilters
               departmentKey={departmentKey}
               district={city}
@@ -113,23 +111,7 @@ export function DestacadosList() {
               districtTriggerClassName="h-auto min-h-9 w-full min-w-0 whitespace-normal py-2 text-sm min-[480px]:min-w-[15rem] md:min-w-[18rem] lg:min-w-[20rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal"
             />
           </div>
-          <div className="flex min-w-0 flex-1 flex-col gap-1.5 lg:min-w-[12rem] xl:min-w-[14rem]">
-            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Search className="h-3.5 w-3.5" />
-              Buscar
-            </Label>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Nombre, rubro o ciudad…"
-                className="h-9 w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-              />
-            </div>
-          </div>
-          <div className="flex min-w-0 flex-col gap-1.5 min-[480px]:shrink-0">
+          <div className="flex min-w-0 flex-col gap-1.5 min-[480px]:min-w-[12rem] min-[900px]:shrink-0">
             <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               <Tag className="h-3.5 w-3.5" />
               Categoría
@@ -188,7 +170,7 @@ export function DestacadosList() {
           </div>
           <h2 className="text-xl font-bold text-foreground">Aún no hay destacados</h2>
           <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-            {city || category || subcategory || query.trim()
+            {city || category || subcategory
               ? "No hay negocios destacados con los filtros seleccionados. Probá otras opciones."
               : "Los negocios que marques como destacados al crear o editar aparecerán aquí."}
           </p>
