@@ -19,6 +19,7 @@ import {
   canonicalizeDistrictName,
   findDepartmentKeyForDistrict,
   getDistrictsForDepartment,
+  isDepartmentKey,
 } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import {
@@ -184,7 +185,10 @@ function NegociosContent() {
   const initialQuery = searchParams.get("q") || ""
   const initialCityRaw = searchParams.get("ciudad") || ""
   const initialCity = initialCityRaw ? canonicalizeDistrictName(initialCityRaw) : ""
-  const initialDept = initialCity ? findDepartmentKeyForDistrict(initialCity) : null
+  const deptFromUrl = (searchParams.get("departamento") || "").trim()
+  const initialDept =
+    (initialCity ? findDepartmentKeyForDistrict(initialCity) : null) ??
+    (isDepartmentKey(deptFromUrl) ? deptFromUrl : null)
   const initialCategory = searchParams.get("categoria") || ""
   const initialSubcategory = searchParams.get("subcategoria") || ""
 

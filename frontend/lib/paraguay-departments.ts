@@ -459,6 +459,12 @@ export function getDistrictsForDepartment(departmentKey: string): string[] {
   return d ? [...d.districts] : []
 }
 
+export function isDepartmentKey(key: string): boolean {
+  const k = String(key ?? "").trim()
+  if (!k) return false
+  return PARAGUAY_DEPARTMENTS.some((d) => d.key === k)
+}
+
 export function findDepartmentKeyForDistrict(district: string): string | null {
   const canon = canonicalizeDistrictName(district)
   const n = normLocation(canon)

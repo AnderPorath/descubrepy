@@ -75,7 +75,11 @@ export function HeroSection() {
                   const params = new URLSearchParams()
                   if (query.trim()) params.set("q", query.trim())
                   const c = city.trim()
-                  if (c) params.set("ciudad", canonicalizeDistrictName(c))
+                  if (c) {
+                    params.set("ciudad", canonicalizeDistrictName(c))
+                  } else if (departmentKey.trim()) {
+                    params.set("departamento", departmentKey.trim())
+                  }
                   router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
                 }}
                 className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98] min-[520px]:w-auto min-[520px]:px-8"
