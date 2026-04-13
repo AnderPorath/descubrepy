@@ -41,20 +41,11 @@ export function HeroSection() {
           Explorá restaurantes, salones, tiendas y servicios. Todo lo que necesitás, en un solo lugar.
         </p>
 
-        {/* Buscador */}
-        <div className="mt-8 w-full max-w-2xl md:mt-10">
-          <div className="overflow-hidden rounded-2xl border border-white/30 bg-white/[0.97] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md">
-            <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-50 via-white to-primary/[0.06] px-4 py-3 text-left md:px-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
-                Ubicación
-              </p>
-              <p className="mt-1 text-xs leading-snug text-muted-foreground">
-                Primero el departamento (Región Oriental u Occidental), después el distrito. Asunción está en Distrito Capital.
-              </p>
-            </div>
-
-            <div className="space-y-4 p-4 md:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        {/* Buscador: departamento, distrito, texto y botón en una sola fila (con wrap solo en pantallas muy estrechas) */}
+        <div className="mt-8 w-full max-w-5xl md:mt-10">
+          <div className="overflow-hidden rounded-2xl border border-white/30 bg-white/[0.97] p-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md md:p-5">
+            <div className="flex flex-col items-stretch gap-3 lg:flex-row lg:flex-nowrap lg:items-end lg:gap-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-2 lg:shrink-0">
                 <DepartmentDistrictFilters
                   departmentKey={departmentKey}
                   district={city}
@@ -62,38 +53,34 @@ export function HeroSection() {
                   onDistrictChange={setCity}
                   groupByRegion
                   labelClassName="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1.5"
-                  departmentTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:w-[min(100%,210px)]"
-                  districtTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:w-[min(100%,240px)]"
+                  wrapClassName="flex flex-col gap-1.5 w-full sm:w-auto sm:min-w-[min(100%,11rem)]"
+                  departmentTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:min-w-[10.5rem]"
+                  districtTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:min-w-[12rem]"
                 />
               </div>
-
-              <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                <div className="relative min-h-[44px] min-w-0 flex-1">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="¿Qué buscás? Ej. pizzería, peluquería, gimnasio…"
-                    className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50/90 py-2 pl-10 pr-4 text-sm text-neutral-800 shadow-inner outline-none transition placeholder:text-neutral-400 focus:border-primary/45 focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const params = new URLSearchParams()
-                    if (query.trim()) params.set("q", query.trim())
-                    const c = city.trim()
-                    if (c) params.set("ciudad", canonicalizeDistrictName(c))
-                    router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
-                  }}
-                  className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98]"
-                >
-                  Buscar
-                </button>
+              <div className="relative min-h-[44px] min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="¿Qué buscás? Ej. pizzería, peluquería, gimnasio…"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50/90 py-2 pl-10 pr-4 text-sm text-neutral-800 shadow-inner outline-none transition placeholder:text-neutral-400 focus:border-primary/45 focus:ring-2 focus:ring-primary/20"
+                />
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams()
+                  if (query.trim()) params.set("q", query.trim())
+                  const c = city.trim()
+                  if (c) params.set("ciudad", canonicalizeDistrictName(c))
+                  router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
+                }}
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98] lg:w-auto lg:px-8"
+              >
+                Buscar
+              </button>
             </div>
           </div>
         </div>
