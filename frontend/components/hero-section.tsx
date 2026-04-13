@@ -27,7 +27,7 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-black/55" />
       </div>
 
-      <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 pb-10 pt-20 text-center md:pb-14 md:pt-24 lg:pb-16 lg:pt-28">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-10 pt-20 text-center md:pb-14 md:pt-24 lg:max-w-7xl lg:pb-16 lg:pt-28">
         <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
           <Sparkles className="h-3 w-3 text-amber-200/90" />
           Tu guía digital de Paraguay
@@ -41,31 +41,31 @@ export function HeroSection() {
           Explorá restaurantes, salones, tiendas y servicios. Todo lo que necesitás, en un solo lugar.
         </p>
 
-        {/* Buscador: departamento, distrito, texto y botón en una sola fila (con wrap solo en pantallas muy estrechas) */}
-        <div className="mt-8 w-full max-w-7xl md:mt-10">
-          <div className="overflow-hidden rounded-2xl border border-white/30 bg-white/[0.97] p-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md md:p-5">
-            {/* Una sola fila desde md: sin flex-wrap en dept+distrito para evitar “depto arriba / distrito+buscador abajo” */}
-            <div className="flex flex-col items-stretch gap-3 md:flex-row md:flex-nowrap md:items-end md:gap-2">
-              <div className="flex min-w-0 shrink-0 flex-col gap-3 min-[420px]:flex-row min-[420px]:flex-nowrap min-[420px]:items-end min-[420px]:gap-2">
+        {/* Buscador: sin etiquetas encima; una sola barra alineada; ancho acorde al hero */}
+        <div className="mt-8 w-full md:mt-10">
+          <div className="rounded-2xl border border-white/30 bg-white/[0.97] p-3 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md sm:p-3.5 md:p-4">
+            <div className="flex flex-col gap-2.5 min-[520px]:flex-row min-[520px]:flex-nowrap min-[520px]:items-center min-[520px]:gap-2">
+              <div className="flex min-w-0 w-full flex-col gap-2 min-[400px]:flex-row min-[400px]:flex-nowrap min-[400px]:items-center min-[400px]:gap-2 min-[520px]:w-auto min-[520px]:shrink-0">
                 <DepartmentDistrictFilters
                   departmentKey={departmentKey}
                   district={city}
                   onDepartmentKeyChange={setDepartmentKey}
                   onDistrictChange={setCity}
+                  showLabels={false}
                   groupByRegion
-                  labelClassName="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1.5"
-                  wrapClassName="flex min-w-0 flex-col gap-1.5 w-full min-[420px]:w-auto"
-                  departmentTriggerClassName="min-h-11 h-auto w-full min-w-0 whitespace-normal rounded-xl border border-neutral-200 bg-white py-2.5 text-sm text-neutral-800 shadow-sm min-[420px]:w-auto min-[420px]:min-w-[13rem] md:min-w-[15rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left"
-                  districtTriggerClassName="min-h-11 h-auto w-full min-w-0 whitespace-normal rounded-xl border border-neutral-200 bg-white py-2.5 text-sm text-neutral-800 shadow-sm min-[420px]:w-auto min-[420px]:min-w-[15rem] md:min-w-[18rem] lg:min-w-[20rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left"
+                  wrapClassName="flex w-full min-w-0 min-[400px]:w-auto"
+                  departmentTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-800 shadow-sm min-[400px]:min-w-[11.5rem] sm:min-w-[13rem] md:min-w-[15rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:text-left"
+                  districtTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-800 shadow-sm min-[400px]:min-w-[12.5rem] sm:min-w-[14rem] md:min-w-[17rem] lg:min-w-[19rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:text-left"
                 />
               </div>
-              <div className="relative min-h-[44px] min-w-0 flex-1 md:min-w-[12rem] lg:min-w-[14rem]">
+              <div className="relative min-h-11 min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <input
-                  type="text"
+                  type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="¿Qué buscás? Ej. pizzería, peluquería, gimnasio…"
+                  placeholder="¿Qué buscás? Ej. pizzería, peluquería…"
+                  aria-label="Buscar negocios"
                   className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50/90 py-2 pl-10 pr-4 text-sm text-neutral-800 shadow-inner outline-none transition placeholder:text-neutral-400 focus:border-primary/45 focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -78,7 +78,7 @@ export function HeroSection() {
                   if (c) params.set("ciudad", canonicalizeDistrictName(c))
                   router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
                 }}
-                className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98] md:w-auto md:px-8"
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98] min-[520px]:w-auto min-[520px]:px-8"
               >
                 Buscar
               </button>
