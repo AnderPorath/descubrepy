@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation"
 import { useState, useEffect, useCallback, Suspense } from "react"
-import { Search, SlidersHorizontal, MapPin, Tag, Layers } from "lucide-react"
+import { Search, SlidersHorizontal, Tag, Layers } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { BusinessCard } from "@/components/business-card"
@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button"
 import {
   fetchBusinesses,
   fetchCategories,
-  fetchCities,
   fetchSubcategories,
   type BusinessApi,
   type CategoryApi,
   type SubcategoryApi,
 } from "@/lib/api"
+import { findDepartmentKeyForDistrict } from "@/lib/paraguay-departments"
+import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import {
   Select,
   SelectContent,
@@ -24,14 +25,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-
-// Fallback cuando la API no responde (mismo contenido que la base de datos)
-const FALLBACK_CITIES = [
-  "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
-  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby",
-  "Pedro Juan Caballero", "Villarrica", "Coronel Oviedo", "Concepción", "Pilar",
-  "Hernandarias", "Presidente Franco", "Itauguá", "Mariano Roque Alonso", "Villa Elisa", "San Antonio",
-]
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [
   { id: 1, slug: "gastronomia", title: "Gastronomía", description: null, icon_name: "UtensilsCross", business_count: 0 },
@@ -186,17 +179,18 @@ function NegociosContent() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get("q") || ""
   const initialCity = searchParams.get("ciudad") || ""
+  const initialDept = initialCity ? findDepartmentKeyForDistrict(initialCity) : null
   const initialCategory = searchParams.get("categoria") || ""
   const initialSubcategory = searchParams.get("subcategoria") || ""
 
   const [query, setQuery] = useState(initialQuery)
+  const [departmentKey, setDepartmentKey] = useState<string>(initialDept ?? "")
   const [city, setCity] = useState(initialCity)
   const [category, setCategory] = useState(initialCategory)
   const [subcategory, setSubcategory] = useState(initialSubcategory)
   const [showFilters, setShowFilters] = useState(false)
   const [businesses, setBusinesses] = useState<BusinessApi[]>([])
   const [categories, setCategories] = useState<CategoryApi[]>(FALLBACK_CATEGORIES)
-  const [cities, setCities] = useState<string[]>(FALLBACK_CITIES)
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -212,10 +206,8 @@ function NegociosContent() {
   }, [])
 
   useEffect(() => {
-    Promise.all([fetchCategories(), fetchCities()]).then(([cats, cits]) => {
+    fetchCategories().then((cats) => {
       setCategories(Array.isArray(cats) && cats.length > 0 ? cats : FALLBACK_CATEGORIES)
-      const cityList = Array.isArray(cits) ? cits.filter((c) => c !== "Todas las ciudades") : []
-      setCities(cityList.length > 0 ? cityList : FALLBACK_CITIES)
     })
   }, [])
 
@@ -271,25 +263,15 @@ function NegociosContent() {
             </div>
 
             <div className={`${showFilters ? "flex flex-col gap-4" : "hidden md:flex md:flex-row md:flex-wrap md:items-end md:gap-4"}`}>
-              <div className="flex flex-col gap-1.5 w-full md:w-auto">
-                <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5" />
-                  Ciudad
-                </Label>
-                <Select value={city || "all"} onValueChange={(v) => setCity(v === "all" ? "" : v)}>
-                  <SelectTrigger className="w-full min-w-0 md:w-[180px] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90">
-                    <SelectValue placeholder="Todas las ciudades" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las ciudades</SelectItem>
-                    {cities.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <DepartmentDistrictFilters
+                departmentKey={departmentKey}
+                district={city}
+                onDepartmentKeyChange={setDepartmentKey}
+                onDistrictChange={setCity}
+                labelClassName="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5"
+                departmentTriggerClassName="w-full min-w-0 md:w-[200px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
+                districtTriggerClassName="w-full min-w-0 md:w-[220px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
+              />
               <div className="flex flex-col gap-1.5 w-full md:w-auto">
                 <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
                   <Tag className="h-3.5 w-3.5" />
@@ -349,7 +331,7 @@ function NegociosContent() {
               className="md:hidden w-full shrink-0 border-2 border-primary-foreground/30 bg-primary-foreground/5 py-3 text-base font-medium text-primary-foreground hover:bg-primary-foreground/15"
             >
               <SlidersHorizontal className="h-5 w-5 mr-2 shrink-0" />
-              {showFilters ? "Ocultar filtros" : "Filtros (ciudad, categoría)"}
+              {showFilters ? "Ocultar filtros" : "Filtros (ubicación, categoría)"}
               {hasActiveFilters && !showFilters ? (
                 <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-xs font-bold">
                   !

@@ -2,17 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { BusinessCard } from "@/components/business-card"
-import { fetchBusinesses, fetchCities } from "@/lib/api"
+import { fetchBusinesses } from "@/lib/api"
+import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import type { BusinessApi } from "@/lib/api"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { MapPin } from "lucide-react"
 import { CategoryIcon } from "@/components/category-icon"
 
 type Props = {
@@ -20,23 +12,11 @@ type Props = {
   subslug: string
 }
 
-const FALLBACK_CITIES = [
-  "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
-  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby", "San Antonio",
-]
-
 export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
   const [businesses, setBusinesses] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
+  const [departmentKey, setDepartmentKey] = useState("")
   const [city, setCity] = useState("")
-  const [cities, setCities] = useState<string[]>(FALLBACK_CITIES)
-
-  useEffect(() => {
-    fetchCities().then((list) => {
-      const arr = Array.isArray(list) ? list.filter((c: string) => c !== "Todas las ciudades") : []
-      setCities(arr.length > 0 ? arr : FALLBACK_CITIES)
-    })
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -70,25 +50,12 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4">
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" />
-              Filtrar por ciudad
-            </Label>
-            <Select value={city || "all"} onValueChange={(v) => setCity(v === "all" ? "" : v)}>
-              <SelectTrigger className="w-[200px] h-9 text-sm">
-                <SelectValue placeholder="Todas las ciudades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las ciudades</SelectItem>
-                {cities.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <DepartmentDistrictFilters
+            departmentKey={departmentKey}
+            district={city}
+            onDepartmentKeyChange={setDepartmentKey}
+            onDistrictChange={setCity}
+          />
         </div>
         <p className="mb-4 text-sm text-muted-foreground">
           {businesses.length} {businesses.length === 1 ? "resultado" : "resultados"}
@@ -105,32 +72,19 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
       <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            Filtrar por ciudad
-          </Label>
-          <Select value={city || "all"} onValueChange={(v) => setCity(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-[200px] h-9 text-sm">
-              <SelectValue placeholder="Todas las ciudades" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las ciudades</SelectItem>
-              {cities.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <DepartmentDistrictFilters
+          departmentKey={departmentKey}
+          district={city}
+          onDepartmentKeyChange={setDepartmentKey}
+          onDistrictChange={setCity}
+        />
       </div>
       <div className="flex flex-col items-center gap-4 py-20 text-center">
         <CategoryIcon categorySlug={categorySlug} subcategorySlug={subslug} size="xl" variant="muted" />
         <h2 className="text-xl font-bold text-foreground">Próximamente</h2>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           {city.trim()
-            ? "No hay negocios en esta subcategoría para la ciudad elegida. Probá otra ciudad."
+            ? "No hay negocios en esta subcategoría para el distrito elegido. Probá otra ubicación."
             : "Estamos agregando negocios en esta subcategoría. Volvé pronto."}
         </p>
       </div>

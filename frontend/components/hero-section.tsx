@@ -2,24 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Building2, MapPin, ChevronDown } from "lucide-react"
-import { fetchCities, fetchStats } from "@/lib/api"
+import { Search, Building2 } from "lucide-react"
+import { fetchStats } from "@/lib/api"
+import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 
 export function HeroSection() {
   const [query, setQuery] = useState("")
-  const [city, setCity] = useState("Todas las ciudades")
-  const [cityOpen, setCityOpen] = useState(false)
-  const [cities, setCities] = useState<string[]>(["Todas las ciudades"])
+  const [departmentKey, setDepartmentKey] = useState("")
+  const [city, setCity] = useState("")
   const [stats, setStats] = useState<{ businessCount: number; monthlyVisitors: number } | null>(null)
   const router = useRouter()
-
-  useEffect(() => {
-    fetchCities().then((list) => {
-      if (Array.isArray(list) && list.length > 0) {
-        setCities(["Todas las ciudades", ...list])
-      }
-    })
-  }, [])
 
   useEffect(() => {
     fetchStats().then((data) => setStats(data))
@@ -53,41 +45,21 @@ export function HeroSection() {
 
         {/* Search bar */}
         <div className="mt-7 w-full max-w-2xl md:mt-8">
-          <div className="flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl sm:flex-row sm:items-center sm:gap-0">
-            {/* City selector */}
-            <div className="relative sm:border-r sm:border-neutral-200 sm:pr-2">
-              <button
-                type="button"
-                onClick={() => setCityOpen(!cityOpen)}
-                className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 sm:w-auto"
-              >
-                <MapPin className="h-4 w-4 shrink-0 text-neutral-400" />
-                <span className="truncate">{city}</span>
-                <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform ${cityOpen ? "rotate-180" : ""}`} />
-              </button>
-              {cityOpen && (
-                <div className="absolute left-0 top-full z-50 mt-1 max-h-52 w-56 overflow-y-auto rounded-xl border border-neutral-100 bg-white py-1 shadow-lg">
-                  {cities.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => {
-                        setCity(c)
-                        setCityOpen(false)
-                      }}
-                      className={`w-full cursor-pointer px-4 py-2 text-left text-sm transition-colors hover:bg-neutral-50 ${
-                        c === city ? "font-medium text-foreground" : "text-neutral-600"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              )}
+          <div className="flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl lg:flex-row lg:items-end lg:gap-2">
+            <div className="flex w-full flex-col gap-2 border-b border-neutral-200 pb-2 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-2 lg:max-w-none">
+              <DepartmentDistrictFilters
+                departmentKey={departmentKey}
+                district={city}
+                onDepartmentKeyChange={setDepartmentKey}
+                onDistrictChange={setCity}
+                labelClassName="text-[11px] font-medium text-neutral-500 flex items-center gap-1.5"
+                departmentTriggerClassName="h-10 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 sm:w-[min(100%,200px)]"
+                districtTriggerClassName="h-10 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 sm:w-[min(100%,220px)]"
+              />
             </div>
 
             {/* Search input */}
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
@@ -104,10 +76,10 @@ export function HeroSection() {
               onClick={() => {
                 const params = new URLSearchParams()
                 if (query.trim()) params.set("q", query.trim())
-                if (city && city !== "Todas las ciudades") params.set("ciudad", city)
+                if (city.trim()) params.set("ciudad", city.trim())
                 router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
               }}
-              className="cursor-pointer rounded-xl bg-neutral-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+              className="cursor-pointer rounded-xl bg-neutral-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-700 lg:shrink-0"
             >
               Buscar
             </button>
@@ -116,7 +88,7 @@ export function HeroSection() {
 
         {/* Stats: negocios registrados (dato real de la API) */}
         <div className="mt-8">
-          <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-5 py-3 backdrop-blur-sm w-fit">
+          <div className="flex w-fit items-center gap-3 rounded-2xl bg-white/10 px-5 py-3 backdrop-blur-sm">
             <Building2 className="h-4 w-4 shrink-0 text-white/60" />
             <div className="text-left">
               <p className="text-base font-bold leading-tight text-white">

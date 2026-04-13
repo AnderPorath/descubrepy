@@ -6,13 +6,13 @@ import { BusinessCard } from "@/components/business-card"
 import {
   fetchFeaturedFiltered,
   fetchCategories,
-  fetchCities,
   fetchSubcategories,
   type BusinessApi,
   type CategoryApi,
   type SubcategoryApi,
 } from "@/lib/api"
-import { Star, MapPin, Tag, Layers } from "lucide-react"
+import { DepartmentDistrictFilters } from "@/components/department-district-filters"
+import { Star, Tag, Layers } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -21,11 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-const FALLBACK_CITIES = [
-  "Asunción", "Ciudad del Este", "Encarnación", "San Lorenzo", "Lambaré",
-  "Fernando de la Mora", "Luque", "Capiatá", "Limpio", "Ñemby", "San Antonio",
-]
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [
   { id: 1, slug: "gastronomia", title: "Gastronomía", description: null, icon_name: "UtensilsCross", business_count: 0 },
@@ -38,10 +33,10 @@ const FALLBACK_CATEGORIES: CategoryApi[] = [
 export function DestacadosList() {
   const [featured, setFeatured] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
+  const [departmentKey, setDepartmentKey] = useState("")
   const [city, setCity] = useState("")
   const [category, setCategory] = useState("")
   const [subcategory, setSubcategory] = useState("")
-  const [cities, setCities] = useState<string[]>(FALLBACK_CITIES)
   const [categories, setCategories] = useState<CategoryApi[]>(FALLBACK_CATEGORIES)
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
 
@@ -55,10 +50,8 @@ export function DestacadosList() {
   }, [])
 
   useEffect(() => {
-    Promise.all([fetchCategories(), fetchCities()]).then(([cats, cits]) => {
+    fetchCategories().then((cats) => {
       setCategories(Array.isArray(cats) && cats.length > 0 ? cats : FALLBACK_CATEGORIES)
-      const list = Array.isArray(cits) ? cits.filter((c: string) => c !== "Todas las ciudades") : []
-      setCities(list.length > 0 ? list : FALLBACK_CITIES)
     })
   }, [])
 
@@ -97,25 +90,12 @@ export function DestacadosList() {
     <section className="mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-12">
       {/* Filtros */}
       <div className="mb-8 flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            Ciudad
-          </Label>
-          <Select value={city || "all"} onValueChange={(v) => setCity(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-[180px] h-9 text-sm">
-              <SelectValue placeholder="Todas las ciudades" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las ciudades</SelectItem>
-              {cities.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <DepartmentDistrictFilters
+          departmentKey={departmentKey}
+          district={city}
+          onDepartmentKeyChange={setDepartmentKey}
+          onDistrictChange={setCity}
+        />
         <div className="flex flex-col gap-1.5">
           <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <Tag className="h-3.5 w-3.5" />
