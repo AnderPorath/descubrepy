@@ -13,7 +13,7 @@ import {
 } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
-import { Star, Tag, Layers } from "lucide-react"
+import { Star, Tag, Layers, Search } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -38,6 +38,7 @@ export function DestacadosList() {
   const [city, setCity] = useState("")
   const [category, setCategory] = useState("")
   const [subcategory, setSubcategory] = useState("")
+  const [query, setQuery] = useState("")
   const [categories, setCategories] = useState<CategoryApi[]>(FALLBACK_CATEGORIES)
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
 
@@ -79,10 +80,11 @@ export function DestacadosList() {
       cities: departmentCities,
       category: category.trim() || undefined,
       subcategory: subcategory.trim() || undefined,
+      q: query.trim() || undefined,
     })
       .then((list) => setFeatured(Array.isArray(list) ? list : []))
       .finally(() => setLoading(false))
-  }, [city, category, subcategory, departmentCities])
+  }, [city, category, subcategory, departmentCities, query])
 
   if (loading && featured.length === 0) {
     return (
@@ -97,65 +99,86 @@ export function DestacadosList() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 lg:px-8 lg:py-12">
-      {/* Filtros */}
-      <div className="mb-8 flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-4">
-        <DepartmentDistrictFilters
-          departmentKey={departmentKey}
-          district={city}
-          onDepartmentKeyChange={setDepartmentKey}
-          onDistrictChange={setCity}
-        />
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <Tag className="h-3.5 w-3.5" />
-            Categoría
-          </Label>
-          <Select
-            value={category || "all"}
-            onValueChange={(v) => {
-              setCategory(v === "all" ? "" : v)
-              setSubcategory("")
-            }}
-          >
-            <SelectTrigger className="w-[200px] h-9 text-sm">
-              <SelectValue placeholder="Todas las categorías" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las categorías</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.slug}>
-                  {cat.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {category ? (
-          <div className="flex flex-col gap-1.5">
+      {/* Filtros: depto + distrito + buscador en una fila estable; categorías con anchos amplios */}
+      <div className="mb-8 rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:flex-nowrap lg:items-end lg:gap-3">
+          <div className="flex min-w-0 w-full flex-col gap-4 min-[480px]:flex-row min-[480px]:flex-nowrap min-[480px]:items-end min-[480px]:gap-3 lg:w-auto lg:shrink-0">
+            <DepartmentDistrictFilters
+              departmentKey={departmentKey}
+              district={city}
+              onDepartmentKeyChange={setDepartmentKey}
+              onDistrictChange={setCity}
+              wrapClassName="flex flex-col gap-1.5 w-full min-[480px]:w-auto"
+              departmentTriggerClassName="h-auto min-h-9 w-full min-w-0 whitespace-normal py-2 text-sm min-[480px]:min-w-[14rem] md:min-w-[18rem] lg:min-w-[20rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal"
+              districtTriggerClassName="h-auto min-h-9 w-full min-w-0 whitespace-normal py-2 text-sm min-[480px]:min-w-[15rem] md:min-w-[18rem] lg:min-w-[20rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal"
+            />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5 lg:min-w-[12rem] xl:min-w-[14rem]">
             <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5" />
-              Subcategoría
+              <Search className="h-3.5 w-3.5" />
+              Buscar
+            </Label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Nombre, rubro o ciudad…"
+                className="h-9 w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm shadow-xs outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              />
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-col gap-1.5 min-[480px]:shrink-0">
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" />
+              Categoría
             </Label>
             <Select
-              value={subcategory || "all"}
-              onValueChange={(v) => setSubcategory(v === "all" ? "" : v)}
+              value={category || "all"}
+              onValueChange={(v) => {
+                setCategory(v === "all" ? "" : v)
+                setSubcategory("")
+              }}
             >
-              <SelectTrigger className="w-[200px] h-9 text-sm">
-                <SelectValue placeholder="Todas las subcategorías" />
+              <SelectTrigger className="h-auto min-h-9 w-full min-w-0 py-2 text-sm min-[480px]:min-w-[12rem] md:min-w-[14rem] [&_[data-slot=select-value]]:line-clamp-none">
+                <SelectValue placeholder="Todas las categorías" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las subcategorías</SelectItem>
-                {subcategories.map((sub) => (
-                  <SelectItem key={sub.id} value={sub.slug}>
-                    {typeof sub.business_count === "number"
-                      ? `${sub.title} (${sub.business_count})`
-                      : sub.title}
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.slug}>
+                    {cat.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        ) : null}
+          {category ? (
+            <div className="flex min-w-0 flex-col gap-1.5 min-[480px]:shrink-0">
+              <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5" />
+                Subcategoría
+              </Label>
+              <Select
+                value={subcategory || "all"}
+                onValueChange={(v) => setSubcategory(v === "all" ? "" : v)}
+              >
+                <SelectTrigger className="h-auto min-h-9 w-full min-w-0 py-2 text-sm min-[480px]:min-w-[12rem] md:min-w-[16rem] [&_[data-slot=select-value]]:line-clamp-none">
+                  <SelectValue placeholder="Todas las subcategorías" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las subcategorías</SelectItem>
+                  {subcategories.map((sub) => (
+                    <SelectItem key={sub.id} value={sub.slug}>
+                      {sub.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {featured.length === 0 ? (
@@ -165,7 +188,7 @@ export function DestacadosList() {
           </div>
           <h2 className="text-xl font-bold text-foreground">Aún no hay destacados</h2>
           <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-            {city || category || subcategory
+            {city || category || subcategory || query.trim()
               ? "No hay negocios destacados con los filtros seleccionados. Probá otras opciones."
               : "Los negocios que marques como destacados al crear o editar aparecerán aquí."}
           </p>

@@ -66,6 +66,7 @@ export type FeaturedFilters = {
   cities?: string[]
   category?: string
   subcategory?: string
+  q?: string
 }
 
 export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<BusinessApi[]> {
@@ -77,6 +78,7 @@ export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<
   }
   if (filters?.category?.trim()) params.set('category', filters.category.trim())
   if (filters?.subcategory?.trim()) params.set('subcategory', filters.subcategory.trim())
+  if (filters?.q?.trim()) params.set('q', filters.q.trim())
   const query = params.toString()
   const url = `${API_URL}/api/featured${query ? `?${query}` : ''}`
   try {

@@ -247,7 +247,7 @@ app.get('/api/subcategories', async (req, res) => {
 // Negocios destacados (solo los que tienen featured = 1). Filtros: ?city=&category=&subcategory=
 app.get('/api/featured', async (req, res) => {
   try {
-    const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug } = req.query || {};
+    const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug, q } = req.query || {};
     let sql = `
       SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
@@ -270,6 +270,10 @@ app.get('/api/featured', async (req, res) => {
       )`;
     }
     sql = appendLocationCityFilter(sql, params, cityName, citiesParam);
+    if (q && String(q).trim()) {
+      const term = `%${String(q).trim()}%`;
+      sql += ` AND (b.name ILIKE ${addParam(params, term)} OR b.location ILIKE ${addParam(params, term)} OR b.city ILIKE ${addParam(params, term)})`;
+    }
     sql += ' ORDER BY b.rating DESC LIMIT 50';
     const result = await db.query(sql, params);
     res.json(result.rows);
