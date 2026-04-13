@@ -42,7 +42,7 @@ export function HeroSection() {
         </p>
 
         {/* Buscador: departamento, distrito, texto y botón en una sola fila (con wrap solo en pantallas muy estrechas) */}
-        <div className="mt-8 w-full max-w-5xl md:mt-10">
+        <div className="mt-8 w-full max-w-7xl md:mt-10">
           <div className="overflow-hidden rounded-2xl border border-white/30 bg-white/[0.97] p-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md md:p-5">
             {/* Una sola fila desde md: sin flex-wrap en dept+distrito para evitar “depto arriba / distrito+buscador abajo” */}
             <div className="flex flex-col items-stretch gap-3 md:flex-row md:flex-nowrap md:items-end md:gap-2">
@@ -54,12 +54,12 @@ export function HeroSection() {
                   onDistrictChange={setCity}
                   groupByRegion
                   labelClassName="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1.5"
-                  wrapClassName="flex min-w-0 flex-col gap-1.5 w-full min-[420px]:w-auto min-[420px]:max-w-[min(100%,11rem)]"
-                  departmentTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm min-[420px]:w-[min(100%,9.5rem)]"
-                  districtTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm min-[420px]:w-[min(100%,11rem)]"
+                  wrapClassName="flex min-w-0 flex-col gap-1.5 w-full min-[420px]:w-auto"
+                  departmentTriggerClassName="min-h-11 h-auto w-full min-w-0 whitespace-normal rounded-xl border border-neutral-200 bg-white py-2.5 text-sm text-neutral-800 shadow-sm min-[420px]:w-auto min-[420px]:min-w-[13rem] md:min-w-[15rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left"
+                  districtTriggerClassName="min-h-11 h-auto w-full min-w-0 whitespace-normal rounded-xl border border-neutral-200 bg-white py-2.5 text-sm text-neutral-800 shadow-sm min-[420px]:w-auto min-[420px]:min-w-[15rem] md:min-w-[18rem] lg:min-w-[20rem] [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left"
                 />
               </div>
-              <div className="relative min-h-[44px] min-w-0 flex-1 md:min-w-[8rem]">
+              <div className="relative min-h-[44px] min-w-0 flex-1 md:min-w-[12rem] lg:min-w-[14rem]">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"

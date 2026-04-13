@@ -283,8 +283,8 @@ function NegociosContent() {
                   onDistrictChange={setCity}
                   labelClassName="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5"
                   wrapClassName="flex flex-col gap-1.5 w-full min-[480px]:w-auto"
-                  departmentTriggerClassName="w-full min-w-0 min-[480px]:w-[min(100%,11rem)] md:w-[200px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
-                  districtTriggerClassName="w-full min-w-0 min-[480px]:w-[min(100%,12rem)] md:w-[220px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
+                  departmentTriggerClassName="h-auto min-h-9 w-full min-w-0 whitespace-normal py-2 text-sm min-[480px]:w-auto min-[480px]:min-w-[13rem] md:min-w-[15rem] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90 [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal"
+                  districtTriggerClassName="h-auto min-h-9 w-full min-w-0 whitespace-normal py-2 text-sm min-[480px]:w-auto min-[480px]:min-w-[15rem] md:min-w-[18rem] lg:min-w-[20rem] border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90 [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal"
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full md:w-auto">
