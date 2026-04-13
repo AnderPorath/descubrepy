@@ -275,15 +275,18 @@ function NegociosContent() {
             </div>
 
             <div className={`${showFilters ? "flex flex-col gap-4" : "hidden md:flex md:flex-row md:flex-wrap md:items-end md:gap-4"}`}>
-              <DepartmentDistrictFilters
-                departmentKey={departmentKey}
-                district={city}
-                onDepartmentKeyChange={setDepartmentKey}
-                onDistrictChange={setCity}
-                labelClassName="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5"
-                departmentTriggerClassName="w-full min-w-0 md:w-[200px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
-                districtTriggerClassName="w-full min-w-0 md:w-[220px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
-              />
+              <div className="flex w-full min-w-0 shrink-0 flex-col gap-4 min-[480px]:w-auto min-[480px]:flex-row min-[480px]:flex-nowrap min-[480px]:items-end min-[480px]:gap-3">
+                <DepartmentDistrictFilters
+                  departmentKey={departmentKey}
+                  district={city}
+                  onDepartmentKeyChange={setDepartmentKey}
+                  onDistrictChange={setCity}
+                  labelClassName="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5"
+                  wrapClassName="flex flex-col gap-1.5 w-full min-[480px]:w-auto"
+                  departmentTriggerClassName="w-full min-w-0 min-[480px]:w-[min(100%,11rem)] md:w-[200px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
+                  districtTriggerClassName="w-full min-w-0 min-[480px]:w-[min(100%,12rem)] md:w-[220px] h-9 text-sm border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground [&>span]:text-primary-foreground/90"
+                />
+              </div>
               <div className="flex flex-col gap-1.5 w-full md:w-auto">
                 <Label className="text-xs font-medium text-primary-foreground/80 flex items-center gap-1.5">
                   <Tag className="h-3.5 w-3.5" />
