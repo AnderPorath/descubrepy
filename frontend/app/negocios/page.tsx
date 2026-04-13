@@ -15,7 +15,7 @@ import {
   type CategoryApi,
   type SubcategoryApi,
 } from "@/lib/api"
-import { findDepartmentKeyForDistrict } from "@/lib/paraguay-departments"
+import { canonicalizeDistrictName, findDepartmentKeyForDistrict } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import {
   Select,
@@ -178,7 +178,8 @@ const FALLBACK_SUBCATEGORIES: Record<string, Array<{ id: number; slug: string; t
 function NegociosContent() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get("q") || ""
-  const initialCity = searchParams.get("ciudad") || ""
+  const initialCityRaw = searchParams.get("ciudad") || ""
+  const initialCity = initialCityRaw ? canonicalizeDistrictName(initialCityRaw) : ""
   const initialDept = initialCity ? findDepartmentKeyForDistrict(initialCity) : null
   const initialCategory = searchParams.get("categoria") || ""
   const initialSubcategory = searchParams.get("subcategoria") || ""

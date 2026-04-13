@@ -25,7 +25,8 @@ INSERT INTO cities (city, sort_order) VALUES
 ('Itauguá', 18),
 ('Mariano Roque Alonso', 19),
 ('Villa Elisa', 20),
-('San Antonio', 21)
+('San Antonio', 21),
+('Nueva Italia', 22)
 ON CONFLICT (city) DO NOTHING;
 
 -- Categorías (20)

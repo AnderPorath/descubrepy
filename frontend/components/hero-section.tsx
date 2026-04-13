@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Building2 } from "lucide-react"
+import { Search, Building2, Sparkles } from "lucide-react"
 import { fetchStats } from "@/lib/api"
+import { canonicalizeDistrictName } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 
 export function HeroSection() {
@@ -19,7 +20,6 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-[64vh] overflow-hidden md:min-h-[72vh]">
-      {/* Background image with dark overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/py.png')" }}
@@ -28,67 +28,78 @@ export function HeroSection() {
       </div>
 
       <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 pb-10 pt-20 text-center md:pb-14 md:pt-24 lg:pb-16 lg:pt-28">
-        {/* Badge */}
-        <span className="mb-4 inline-block rounded-full border border-white/20 bg-white/10 px-5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
-          Tu guia digital de Paraguay
+        <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+          <Sparkles className="h-3 w-3 text-amber-200/90" />
+          Tu guía digital de Paraguay
         </span>
 
-        {/* Heading - serif font */}
         <h1 className="text-balance font-[family-name:var(--font-heading)] text-3xl font-bold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
-          Descubri los mejores negocios de Paraguay
+          Descubrí los mejores negocios de Paraguay
         </h1>
 
-        {/* Subtitle */}
         <p className="mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-white/70 md:text-base">
-          Explora restaurantes, salones, tiendas y servicios. Todo lo que necesitas, en un solo lugar.
+          Explorá restaurantes, salones, tiendas y servicios. Todo lo que necesitás, en un solo lugar.
         </p>
 
-        {/* Search bar */}
-        <div className="mt-7 w-full max-w-2xl md:mt-8">
-          <div className="flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl lg:flex-row lg:items-end lg:gap-2">
-            <div className="flex w-full flex-col gap-2 border-b border-neutral-200 pb-2 sm:flex-row sm:flex-wrap sm:items-end sm:gap-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-2 lg:max-w-none">
-              <DepartmentDistrictFilters
-                departmentKey={departmentKey}
-                district={city}
-                onDepartmentKeyChange={setDepartmentKey}
-                onDistrictChange={setCity}
-                labelClassName="text-[11px] font-medium text-neutral-500 flex items-center gap-1.5"
-                departmentTriggerClassName="h-10 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 sm:w-[min(100%,200px)]"
-                districtTriggerClassName="h-10 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 sm:w-[min(100%,220px)]"
-              />
+        {/* Buscador */}
+        <div className="mt-8 w-full max-w-2xl md:mt-10">
+          <div className="overflow-hidden rounded-2xl border border-white/30 bg-white/[0.97] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className="border-b border-neutral-100 bg-gradient-to-br from-neutral-50 via-white to-primary/[0.06] px-4 py-3 text-left md:px-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                Ubicación
+              </p>
+              <p className="mt-1 text-xs leading-snug text-muted-foreground">
+                Primero el departamento (Región Oriental u Occidental), después el distrito. Asunción está en Distrito Capital.
+              </p>
             </div>
 
-            {/* Search input */}
-            <div className="relative min-w-0 flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Busca restaurantes, salones, gimnasios..."
-                className="w-full rounded-xl bg-transparent py-3 pl-10 pr-4 text-sm text-neutral-800 outline-none placeholder:text-neutral-400"
-              />
-            </div>
+            <div className="space-y-4 p-4 md:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+                <DepartmentDistrictFilters
+                  departmentKey={departmentKey}
+                  district={city}
+                  onDepartmentKeyChange={setDepartmentKey}
+                  onDistrictChange={setCity}
+                  groupByRegion
+                  labelClassName="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 flex items-center gap-1.5"
+                  departmentTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:w-[min(100%,210px)]"
+                  districtTriggerClassName="h-11 w-full min-w-0 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-800 shadow-sm sm:w-[min(100%,240px)]"
+                />
+              </div>
 
-            {/* Buscar button */}
-            <button
-              type="button"
-              onClick={() => {
-                const params = new URLSearchParams()
-                if (query.trim()) params.set("q", query.trim())
-                if (city.trim()) params.set("ciudad", city.trim())
-                router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
-              }}
-              className="cursor-pointer rounded-xl bg-neutral-800 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-700 lg:shrink-0"
-            >
-              Buscar
-            </button>
+              <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                <div className="relative min-h-[44px] min-w-0 flex-1">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="¿Qué buscás? Ej. pizzería, peluquería, gimnasio…"
+                    className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50/90 py-2 pl-10 pr-4 text-sm text-neutral-800 shadow-inner outline-none transition placeholder:text-neutral-400 focus:border-primary/45 focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const params = new URLSearchParams()
+                    if (query.trim()) params.set("q", query.trim())
+                    const c = city.trim()
+                    if (c) params.set("ciudad", canonicalizeDistrictName(c))
+                    router.push(`/negocios${params.toString() ? `?${params.toString()}` : ""}`)
+                  }}
+                  className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/92 hover:shadow-lg active:scale-[0.98]"
+                >
+                  Buscar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Stats: negocios registrados (dato real de la API) */}
         <div className="mt-8">
-          <div className="flex w-fit items-center gap-3 rounded-2xl bg-white/10 px-5 py-3 backdrop-blur-sm">
+          <div className="flex w-fit items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-5 py-3 backdrop-blur-sm">
             <Building2 className="h-4 w-4 shrink-0 text-white/60" />
             <div className="text-left">
               <p className="text-base font-bold leading-tight text-white">

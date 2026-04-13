@@ -5,11 +5,13 @@ import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { PARAGUAY_DEPARTMENTS, getDistrictsForDepartment } from "@/lib/paraguay-departments"
+import { getDepartmentsGrouped, getDistrictsForDepartment } from "@/lib/paraguay-departments"
 
 type Props = {
   departmentKey: string
@@ -20,6 +22,7 @@ type Props = {
   departmentTriggerClassName?: string
   districtTriggerClassName?: string
   wrapClassName?: string
+  groupByRegion?: boolean
 }
 
 export function DepartmentDistrictFilters({
@@ -31,8 +34,10 @@ export function DepartmentDistrictFilters({
   departmentTriggerClassName = "w-full min-w-0 md:w-[200px] h-9 text-sm",
   districtTriggerClassName = "w-full min-w-0 md:w-[220px] h-9 text-sm",
   wrapClassName = "flex flex-col gap-1.5 w-full md:w-auto",
+  groupByRegion = true,
 }: Props) {
   const districts = departmentKey ? getDistrictsForDepartment(departmentKey) : []
+  const grouped = getDepartmentsGrouped()
 
   return (
     <>
@@ -52,13 +57,26 @@ export function DepartmentDistrictFilters({
           <SelectTrigger className={departmentTriggerClassName}>
             <SelectValue placeholder="Todos" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[min(24rem,70vh)]">
             <SelectItem value="all">Todos los departamentos</SelectItem>
-            {PARAGUAY_DEPARTMENTS.map((d) => (
-              <SelectItem key={d.key} value={d.key}>
-                {d.name}
-              </SelectItem>
-            ))}
+            {groupByRegion
+              ? grouped.map((g) => (
+                  <SelectGroup key={g.label}>
+                    <SelectLabel className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                      {g.label}
+                    </SelectLabel>
+                    {g.items.map((d) => (
+                      <SelectItem key={d.key} value={d.key}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))
+              : grouped.flatMap((g) => g.items).map((d) => (
+                  <SelectItem key={d.key} value={d.key}>
+                    {d.name}
+                  </SelectItem>
+                ))}
           </SelectContent>
         </Select>
       </div>
@@ -75,7 +93,7 @@ export function DepartmentDistrictFilters({
           <SelectTrigger className={districtTriggerClassName} disabled={!departmentKey}>
             <SelectValue placeholder={departmentKey ? "Elegí un distrito" : "Primero el departamento"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[min(24rem,70vh)]">
             <SelectItem value="all">Todos los distritos</SelectItem>
             {districts.map((name) => (
               <SelectItem key={`${departmentKey}-${name}`} value={name}>
