@@ -37,7 +37,7 @@ const FALLBACK_SUBCATEGORIES: Record<string, Array<{ slug: string; title: string
     { slug: "parrilla", title: "Pollería" },
     { slug: "sushi", title: "Sushi" },
     { slug: "comida-rapida", title: "Comida rápida" },
-    { slug: "comida-internacional", title: "Comida internacional" },
+    { slug: "comida-internacional", title: "Heladerías" },
     { slug: "postres-reposteria", title: "Postres y repostería" },
   ],
   "belleza-y-spa": [{ slug: "peluquerias", title: "Peluquerías" }, { slug: "barberias", title: "Barberías" }, { slug: "spa", title: "Spa" }, { slug: "unas", title: "Uñas" }, { slug: "estetica", title: "Estética" }],

@@ -34,7 +34,7 @@ export const SUBCATEGORY_EMOJI: Record<string, string> = {
   "gastronomia/parrilla": "🍗",
   "gastronomia/sushi": "🍣",
   "gastronomia/comida-rapida": "🌯",
-  "gastronomia/comida-internacional": "🍽️",
+  "gastronomia/comida-internacional": "🍦",
   "gastronomia/postres-reposteria": "🍰",
   // Belleza y Spa
   "belleza-y-spa/peluquerias": "💇",
