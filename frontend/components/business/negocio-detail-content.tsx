@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,13 @@ import { useAuth } from "@/contexts/auth-context"
 import { deleteBusiness, checkIsFavorite, addFavorite, removeFavorite } from "@/lib/api"
 import type { BusinessDetailApi, BusinessApi } from "@/lib/api"
 import { Pencil, Trash2, Heart } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const getApiBase = () => (typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : "")
 
@@ -55,6 +63,7 @@ export function NegocioDetailContent() {
   const [deleting, setDeleting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
   const [favoriteLoading, setFavoriteLoading] = useState(false)
+  const [couponOpen, setCouponOpen] = useState(false)
   const isAdmin = user?.role === "admin"
   const isClient = user?.role === "user"
 
@@ -220,6 +229,14 @@ export function NegocioDetailContent() {
             <MenuSection business={business} />
           </div>
           <aside className="lg:sticky lg:top-20 space-y-4">
+            {Number(business.discount_percent || 0) > 0 ? (
+              <Button
+                className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                onClick={() => setCouponOpen(true)}
+              >
+                Canjear descuento
+              </Button>
+            ) : null}
             {isClient && (
               <Button
                 variant={isFavorite ? "secondary" : "outline"}
@@ -263,6 +280,32 @@ export function NegocioDetailContent() {
           </Link>
         </Button>
       </div>
+
+      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cupón de descuento</DialogTitle>
+            <DialogDescription>
+              Mostrá este cupón en {business.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+            <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+              <Image
+                src="/images/cupon-descuento.png"
+                alt="Cupón de descuento"
+                width={1024}
+                height={1024}
+                className="h-auto w-full object-contain"
+                priority
+              />
+            </div>
+            <p className="mt-3 text-sm text-emerald-800">
+              Presentando ese cupón obtendrá el descuento.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
