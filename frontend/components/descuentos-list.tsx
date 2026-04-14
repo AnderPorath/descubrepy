@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { Tag, Layers } from "lucide-react"
 import { BusinessCard } from "@/components/business-card"
+import { Button } from "@/components/ui/button"
 import {
   fetchDiscounts,
   fetchCategories,
@@ -22,6 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [
   { id: 1, slug: "gastronomia", title: "Gastronomía", description: null, icon_name: "UtensilsCross", business_count: 0 },
@@ -40,6 +48,14 @@ export function DescuentosList() {
   const [subcategory, setSubcategory] = useState("")
   const [categories, setCategories] = useState<CategoryApi[]>(FALLBACK_CATEGORIES)
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
+  const [couponOpen, setCouponOpen] = useState(false)
+  const [couponBusiness, setCouponBusiness] = useState<BusinessApi | null>(null)
+
+  const buildCouponCode = (business: BusinessApi) => {
+    const base = (business.slug || "LOCAL").replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 8) || "LOCAL"
+    const pct = String(Number(business.discount_percent || 0)).padStart(2, "0")
+    return `DESC-${base}-${pct}`
+  }
 
   const loadSubcategories = useCallback(async (categorySlug: string) => {
     if (!categorySlug.trim()) {
@@ -184,11 +200,52 @@ export function DescuentosList() {
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((business) => (
-              <BusinessCard key={business.id} business={business} />
+              <div key={business.id} className="flex flex-col gap-3">
+                <BusinessCard business={business} />
+                <Button
+                  type="button"
+                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                  onClick={() => {
+                    setCouponBusiness(business)
+                    setCouponOpen(true)
+                  }}
+                >
+                  Canjear
+                </Button>
+              </div>
             ))}
           </div>
         </>
       )}
+
+      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cupón de descuento</DialogTitle>
+            <DialogDescription>
+              {couponBusiness
+                ? `Mostrá este cupón en ${couponBusiness.name}.`
+                : "Mostrá este cupón en el local."}
+            </DialogDescription>
+          </DialogHeader>
+          {couponBusiness ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                Cupón oficial
+              </p>
+              <p className="mt-2 text-3xl font-bold text-emerald-700">
+                -{Number(couponBusiness.discount_percent || 0)}%
+              </p>
+              <p className="mt-2 rounded-md border border-emerald-300 bg-white px-3 py-2 font-mono text-sm text-emerald-800">
+                {buildCouponCode(couponBusiness)}
+              </p>
+              <p className="mt-3 text-sm text-emerald-800">
+                Presentando ese cupón obtendrá el descuento.
+              </p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
