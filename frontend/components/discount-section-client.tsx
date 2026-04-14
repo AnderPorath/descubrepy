@@ -6,6 +6,13 @@ import Link from "next/link"
 import { Tag, MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchDiscounts, getImageUrl, type BusinessApi } from "@/lib/api"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const PLACEHOLDER_IMG = "/placeholder.svg"
 
@@ -13,6 +20,8 @@ export function DiscountSectionClient() {
   const [items, setItems] = useState<BusinessApi[]>([])
   const [loading, setLoading] = useState(true)
   const [failedImageIds, setFailedImageIds] = useState<Set<number>>(new Set())
+  const [couponOpen, setCouponOpen] = useState(false)
+  const [couponBusiness, setCouponBusiness] = useState<BusinessApi | null>(null)
   const carouselRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -77,49 +86,91 @@ export function DiscountSectionClient() {
             </p>
           ) : (
             items.map((business) => (
-              <Link
+              <article
                 key={business.id}
-                href={`/negocio/${business.slug}`}
                 data-discount-card
-                className="group block w-[85vw] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 sm:w-[360px] lg:w-[320px]"
+                className="group w-[85vw] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 sm:w-[360px] lg:w-[320px]"
               >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={failedImageIds.has(business.id) ? PLACEHOLDER_IMG : (getImageUrl(business.image_url) || PLACEHOLDER_IMG)}
-                    alt={business.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    unoptimized
-                    onError={() => setFailedImageIds((s) => new Set(s).add(business.id))}
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
-                    -{Number(business.discount_percent || 0)}%
-                  </span>
-                </div>
+                <Link href={`/negocio/${business.slug}`} className="block">
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={failedImageIds.has(business.id) ? PLACEHOLDER_IMG : (getImageUrl(business.image_url) || PLACEHOLDER_IMG)}
+                      alt={business.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      unoptimized
+                      onError={() => setFailedImageIds((s) => new Set(s).add(business.id))}
+                    />
+                    <span className="absolute left-3 top-3 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
+                      -{Number(business.discount_percent || 0)}%
+                    </span>
+                  </div>
 
-                <div className="p-4">
-                  <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-primary">
-                    {business.category}
-                  </span>
-                  <h3 className="mt-2 font-[family-name:var(--font-heading)] text-base font-semibold text-card-foreground transition-colors group-hover:text-emerald-600">
-                    {business.name}
-                  </h3>
-                  {business.city?.trim() ? (
-                    <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      <span className="text-xs">{business.city.trim()}</span>
-                    </div>
-                  ) : null}
-                  <span className="mt-3 flex w-full items-center gap-1 text-sm text-emerald-700 group-hover:underline">
-                    Ver oferta
-                    <Tag className="h-3.5 w-3.5" />
-                  </span>
+                  <div className="p-4">
+                    <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-primary">
+                      {business.category}
+                    </span>
+                    <h3 className="mt-2 font-[family-name:var(--font-heading)] text-base font-semibold text-card-foreground transition-colors group-hover:text-emerald-600">
+                      {business.name}
+                    </h3>
+                    {business.city?.trim() ? (
+                      <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="text-xs">{business.city.trim()}</span>
+                      </div>
+                    ) : null}
+                    <span className="mt-3 flex w-full items-center gap-1 text-sm text-emerald-700 group-hover:underline">
+                      Ver oferta
+                      <Tag className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
+                <div className="px-4 pb-4">
+                  <Button
+                    type="button"
+                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                    onClick={() => {
+                      setCouponBusiness(business)
+                      setCouponOpen(true)
+                    }}
+                  >
+                    Canjear
+                  </Button>
                 </div>
-              </Link>
+              </article>
             ))
           )}
         </div>
       </div>
+      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cupón de descuento</DialogTitle>
+            <DialogDescription>
+              {couponBusiness
+                ? `Mostrá este cupón en ${couponBusiness.name}.`
+                : "Mostrá este cupón en el local."}
+            </DialogDescription>
+          </DialogHeader>
+          {couponBusiness ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+              <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+                <Image
+                  src="/images/cupon-descuento.png"
+                  alt="Cupón de descuento"
+                  width={1024}
+                  height={1024}
+                  className="h-auto w-full object-contain"
+                  priority
+                />
+              </div>
+              <p className="mt-3 text-sm text-emerald-800">
+                Presentando ese cupón obtendrá el descuento.
+              </p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
