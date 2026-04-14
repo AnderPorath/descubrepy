@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Tag, Layers } from "lucide-react"
 import { BusinessCard } from "@/components/business-card"
 import { Button } from "@/components/ui/button"
@@ -50,12 +51,6 @@ export function DescuentosList() {
   const [subcategories, setSubcategories] = useState<SubcategoryApi[]>([])
   const [couponOpen, setCouponOpen] = useState(false)
   const [couponBusiness, setCouponBusiness] = useState<BusinessApi | null>(null)
-
-  const buildCouponCode = (business: BusinessApi) => {
-    const base = (business.slug || "LOCAL").replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 8) || "LOCAL"
-    const pct = String(Number(business.discount_percent || 0)).padStart(2, "0")
-    return `DESC-${base}-${pct}`
-  }
 
   const loadSubcategories = useCallback(async (categorySlug: string) => {
     if (!categorySlug.trim()) {
@@ -229,16 +224,17 @@ export function DescuentosList() {
             </DialogDescription>
           </DialogHeader>
           {couponBusiness ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                Cupón oficial
-              </p>
-              <p className="mt-2 text-3xl font-bold text-emerald-700">
-                -{Number(couponBusiness.discount_percent || 0)}%
-              </p>
-              <p className="mt-2 rounded-md border border-emerald-300 bg-white px-3 py-2 font-mono text-sm text-emerald-800">
-                {buildCouponCode(couponBusiness)}
-              </p>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
+              <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
+                <Image
+                  src="/images/cupon-descuento.png"
+                  alt="Cupón de descuento"
+                  width={1024}
+                  height={1024}
+                  className="h-auto w-full object-contain"
+                  priority
+                />
+              </div>
               <p className="mt-3 text-sm text-emerald-800">
                 Presentando ese cupón obtendrá el descuento.
               </p>
