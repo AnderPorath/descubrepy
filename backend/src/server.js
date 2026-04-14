@@ -53,6 +53,15 @@ function addParam(params, value) {
   return `$${params.length}`;
 }
 
+function normalizeDiscountPercent(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  const rounded = Math.round(n);
+  if (rounded <= 0) return 0;
+  if (rounded >= 95) return 95;
+  return rounded - (rounded % 5);
+}
+
 /** Normaliza texto para comparar ciudad (minúsculas, sin acentos) */
 function normalizeCity(str) {
   return String(str ?? '')
@@ -137,6 +146,18 @@ async function ensureBusinessSubcategoriesSchema() {
 
 ensureBusinessSubcategoriesSchema().catch((err) => {
   console.error('[schema] Error al preparar business_subcategories:', err.message)
+})
+
+async function ensureBusinessDiscountSchema() {
+  await db.query(`
+    ALTER TABLE businesses
+    ADD COLUMN IF NOT EXISTS discount_percent INTEGER NOT NULL DEFAULT 0
+  `)
+  await db.query(`UPDATE businesses SET discount_percent = 0 WHERE discount_percent IS NULL`)
+}
+
+ensureBusinessDiscountSchema().catch((err) => {
+  console.error('[schema] Error al preparar discount_percent:', err.message)
 })
 
 /** Sincroniza filas en business_subcategories (principal + slugs extra, misma categoría). */
@@ -249,7 +270,7 @@ app.get('/api/featured', async (req, res) => {
   try {
     const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
              c.title AS category, c.slug AS category_slug
       FROM businesses b
@@ -283,6 +304,45 @@ app.get('/api/featured', async (req, res) => {
   }
 });
 
+// Negocios con descuento (> 0). Filtros: ?city=&category=&subcategory=&q=
+app.get('/api/discounts', async (req, res) => {
+  try {
+    const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug, q } = req.query || {};
+    let sql = `
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
+             CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
+             c.title AS category, c.slug AS category_slug
+      FROM businesses b
+      LEFT JOIN categories c ON b.category_id = c.id
+      LEFT JOIN subcategories s ON b.subcategory_id = s.id
+      WHERE COALESCE(b.discount_percent, 0) > 0
+    `;
+    const params = [];
+    if (categorySlug && String(categorySlug).trim()) {
+      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
+    }
+    if (subcategorySlug && String(subcategorySlug).trim()) {
+      const subSlug = String(subcategorySlug).trim();
+      sql += ` AND EXISTS (
+        SELECT 1 FROM business_subcategories bs
+        INNER JOIN subcategories s2 ON s2.id = bs.subcategory_id
+        WHERE bs.business_id = b.id AND LOWER(TRIM(s2.slug)) = LOWER(${addParam(params, subSlug)})
+      )`;
+    }
+    sql = appendLocationCityFilter(sql, params, cityName, citiesParam);
+    if (q && String(q).trim()) {
+      const term = `%${String(q).trim()}%`;
+      sql += ` AND (b.name ILIKE ${addParam(params, term)} OR b.location ILIKE ${addParam(params, term)} OR b.city ILIKE ${addParam(params, term)})`;
+    }
+    sql += ' ORDER BY COALESCE(b.discount_percent, 0) DESC, b.rating DESC LIMIT 100';
+    const result = await db.query(sql, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener descuentos' });
+  }
+});
+
 // Todas las ciudades (para el hero)
 app.get('/api/cities', async (req, res) => {
   try {
@@ -301,7 +361,7 @@ app.get('/api/businesses', async (req, res) => {
   try {
     const { category: categorySlug, subcategory: subcategorySlug, city: cityName, cities: citiesParam, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url,
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
              c.title AS category, c.slug AS category_slug
       FROM businesses b
@@ -341,7 +401,7 @@ app.get('/api/businesses/:slug', async (req, res) => {
     const slug = (req.params.slug || '').trim();
     if (!slug) return res.status(404).json({ error: 'Negocio no encontrado' });
     const result = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.latitude, b.longitude, b.city, b.rating, b.image_url,
+      `SELECT b.id, b.name, b.slug, b.location, b.latitude, b.longitude, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
               CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
               b.description, b.phone, b.instagram_url, b.opening_hours, b.menu_services, b.gallery_images,
               c.title AS category, c.slug AS category_slug, s.slug AS subcategory_slug,
@@ -397,6 +457,7 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
       gallery_images,
     } = body;
     const featured = body.featured === true || body.featured === 1 || body.featured === '1';
+    const discountPercent = normalizeDiscountPercent(body.discount_percent);
     const category_slug = body.category_slug ?? body.categorySlug;
     const slugTrim = String(category_slug || '').trim();
     if (!name?.trim() || !slugTrim || !city?.trim()) {
@@ -454,8 +515,8 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
     const insertRes = await db.query(
       `INSERT INTO businesses (
         category_id, subcategory_id, name, slug, location, city, latitude, longitude,
-        description, phone, instagram_url, opening_hours, menu_services, image_url, gallery_images, featured
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16) RETURNING id`,
+        description, phone, instagram_url, opening_hours, menu_services, image_url, gallery_images, featured, discount_percent
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16, $17) RETURNING id`,
       [
         category_id,
         subcategory_id,
@@ -473,6 +534,7 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         image_url?.trim() || null,
         galleryJson,
         featured,
+        discountPercent,
       ]
     );
     const businessId = insertRes.rows?.[0]?.id;
@@ -485,7 +547,7 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
       await syncBusinessSubcategories(businessId, category_id, subcategory_id, extraSubSlugs);
     }
     const rowResult = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
               CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
               c.slug AS category_slug
        FROM businesses b
@@ -535,6 +597,8 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
     const featuredVal = body.featured === true || body.featured === 1 || body.featured === '1'
       ? true
       : (body.featured === false || body.featured === 0 || body.featured === '0' ? false : null);
+    const hasDiscountPercent = Object.prototype.hasOwnProperty.call(body, 'discount_percent');
+    const discountPercentVal = hasDiscountPercent ? normalizeDiscountPercent(body.discount_percent) : null;
     const categorySlugParam = body.category_slug ?? body.categorySlug;
     const existingResult = await db.query(
       'SELECT id, category_id FROM businesses WHERE LOWER(TRIM(slug)) = LOWER($1)',
@@ -624,6 +688,10 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       setParts.push(`featured = $${updates.length + 1}`);
       updates.push(featuredVal);
     }
+    if (discountPercentVal !== null) {
+      setParts.push(`discount_percent = $${updates.length + 1}`);
+      updates.push(discountPercentVal);
+    }
     updates.push(existing.id);
     await db.query(
       `UPDATE businesses SET ${setParts.join(', ')} WHERE id = $${updates.length}`,
@@ -638,7 +706,7 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
     await syncBusinessSubcategories(existing.id, category_id, subcategory_id, extraSubSlugsPut);
 
     const rowResult = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url,
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
               CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
               c.slug AS category_slug
        FROM businesses b LEFT JOIN categories c ON b.category_id = c.id WHERE b.id = $1`,
@@ -670,7 +738,7 @@ app.get('/api/favorites', requireAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const result = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, c.title AS category, c.slug AS category_slug
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, COALESCE(b.discount_percent, 0)::int AS discount_percent, c.title AS category, c.slug AS category_slug
        FROM user_favorites uf
        INNER JOIN businesses b ON uf.business_id = b.id
        LEFT JOIN categories c ON b.category_id = c.id
@@ -679,7 +747,7 @@ app.get('/api/favorites', requireAuth, async (req, res) => {
       [userId]
     );
     const rawRows = result && Array.isArray(result.rows) ? result.rows : [];
-    const rows = rawRows.map((r) => ({ ...r, featured: r.featured ? 1 : 0 }));
+    const rows = rawRows.map((r) => ({ ...r, featured: r.featured ? 1 : 0, discount_percent: Number(r.discount_percent || 0) }));
     res.json(rows);
   } catch (err) {
     console.error(err);

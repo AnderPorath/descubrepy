@@ -2,6 +2,7 @@ import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
 import { CategoriesSection } from "@/components/categories-section"
 import { FeaturedSectionClient } from "@/components/featured-section-client"
+import { DiscountSectionClient } from "@/components/discount-section-client"
 import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
 
@@ -13,6 +14,7 @@ export default function Home() {
         <HeroSection />
         <CategoriesSection />
         <FeaturedSectionClient />
+        <DiscountSectionClient />
         <CtaSection />
       </main>
       <Footer />

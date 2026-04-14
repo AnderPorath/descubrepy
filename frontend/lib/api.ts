@@ -77,6 +77,7 @@ export type FeaturedFilters = {
   subcategory?: string
   q?: string
 }
+export type DiscountFilters = FeaturedFilters
 
 export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<BusinessApi[]> {
   const params = new URLSearchParams()
@@ -90,6 +91,27 @@ export async function fetchFeaturedFiltered(filters?: FeaturedFilters): Promise<
   if (filters?.q?.trim()) params.set('q', filters.q.trim())
   const query = params.toString()
   const url = `${API_URL}/api/featured${query ? `?${query}` : ''}`
+  try {
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) return []
+    return await res.json()
+  } catch {
+    return []
+  }
+}
+
+export async function fetchDiscounts(filters?: DiscountFilters): Promise<BusinessApi[]> {
+  const params = new URLSearchParams()
+  if (filters?.city?.trim()) {
+    params.set('city', filters.city.trim())
+  } else if (filters?.cities && filters.cities.length > 0) {
+    params.set('cities', filters.cities.map((c) => c.trim()).filter(Boolean).join('|'))
+  }
+  if (filters?.category?.trim()) params.set('category', filters.category.trim())
+  if (filters?.subcategory?.trim()) params.set('subcategory', filters.subcategory.trim())
+  if (filters?.q?.trim()) params.set('q', filters.q.trim())
+  const query = params.toString()
+  const url = `${API_URL}/api/discounts${query ? `?${query}` : ''}`
   try {
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return []
@@ -141,6 +163,7 @@ export type BusinessApi = {
   rating: number | null
   image_url: string | null
   featured: number
+  discount_percent?: number
   category: string | null
   category_slug: string | null
 }
@@ -210,6 +233,7 @@ export type CreateBusinessPayload = {
   image_url?: string
   gallery_images?: string[]
   featured?: boolean
+  discount_percent?: number
 }
 
 export async function createBusiness(
@@ -250,6 +274,7 @@ export type UpdateBusinessPayload = {
   image_url?: string
   gallery_images?: string[]
   featured?: boolean
+  discount_percent?: number
 }
 
 export async function updateBusiness(

@@ -70,6 +70,7 @@ CREATE TABLE businesses (
   gallery_images JSONB,
   rating NUMERIC(2, 1),
   featured BOOLEAN NOT NULL DEFAULT FALSE,
+  discount_percent INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT uk_business_slug UNIQUE (slug),
   CONSTRAINT fk_business_category

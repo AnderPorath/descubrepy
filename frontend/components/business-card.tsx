@@ -34,6 +34,13 @@ export function BusinessCard({ business }: { business: BusinessApi }) {
               </Badge>
             </div>
           ) : null}
+          {Number(business.discount_percent || 0) > 0 ? (
+            <div className="absolute top-3 right-3">
+              <Badge className="border-0 bg-emerald-600 text-white shadow-lg">
+                -{Number(business.discount_percent || 0)}%
+              </Badge>
+            </div>
+          ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
           <div className="absolute bottom-3 left-3 right-3">
             {business.category ? (

@@ -34,6 +34,7 @@ const TIME_OPTIONS: string[] = (() => {
   }
   return opts
 })()
+const DISCOUNT_OPTIONS = Array.from({ length: 20 }, (_, i) => i * 5)
 
 type DaySchedule = { closed: boolean; from: string; to: string }
 
@@ -259,6 +260,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
   const [mapLat, setMapLat] = useState<number | null>(null)
   const [mapLng, setMapLng] = useState<number | null>(null)
   const [featured, setFeatured] = useState(false)
+  const [discountPercent, setDiscountPercent] = useState(0)
   const departmentGroups = useMemo(() => getDepartmentsGrouped(), [])
   const districtOptions = useMemo(
     () => (departmentKey ? getDistrictsForDepartment(departmentKey) : []),
@@ -281,6 +283,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     setCity(initialDistrict)
     setDepartmentKey(findDepartmentKeyForDistrict(initialDistrict) ?? "")
     setFeatured(Boolean(initialData.featured))
+    setDiscountPercent(Number(initialData.discount_percent || 0))
     setCoverUrl(initialData.image_url ?? "")
     setCoverPreview(initialData.image_url ?? null)
     setGalleryUrls(initialData.gallery_images ?? [])
@@ -439,6 +442,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
       image_url: coverUrl || undefined,
       gallery_images: galleryUrls.length ? galleryUrls : undefined,
       featured,
+      discount_percent: discountPercent,
     }
     if (isEdit && editSlug) {
       const { error: err } = await updateBusiness(editSlug, payload, token)
@@ -833,6 +837,23 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
               <p className="text-xs text-muted-foreground">
                 Los negocios destacados aparecen en la página de inicio y primero en listados.
               </p>
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-muted-foreground">Descuento</Label>
+                <select
+                  value={discountPercent}
+                  onChange={(e) => setDiscountPercent(Number(e.target.value) || 0)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {DISCOUNT_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value === 0 ? "Sin descuento" : `${value}%`}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Elegí el porcentaje en pasos de 5 (5%, 10%, 15%, etc.).
+                </p>
+              </div>
               <Button
                 type="submit"
                 size="lg"

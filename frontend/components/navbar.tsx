@@ -10,6 +10,7 @@ import { AuthModal } from "@/components/auth-modal"
 
 const navLinks = [
   { label: "Inicio", href: "/" },
+  { label: "Descuentos", href: "/descuentos" },
   { label: "Destacados", href: "/destacados" },
   { label: "Categorias", href: "/categorias" },
   { label: "Negocios", href: "/negocios" },

@@ -29,6 +29,7 @@ CREATE TABLE businesses (
   gallery_images JSON DEFAULT NULL,
   rating DECIMAL(2, 1) DEFAULT NULL,
   featured TINYINT(1) NOT NULL DEFAULT 0,
+  discount_percent INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_slug (slug),
   KEY idx_category (category_id),
