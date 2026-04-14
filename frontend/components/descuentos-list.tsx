@@ -5,7 +5,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { Tag, Layers } from "lucide-react"
 import { BusinessCard } from "@/components/business-card"
-import { Button } from "@/components/ui/button"
 import {
   fetchDiscounts,
   fetchCategories,
@@ -195,19 +194,14 @@ export function DescuentosList() {
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((business) => (
-              <div key={business.id} className="flex flex-col gap-3">
-                <BusinessCard business={business} />
-                <Button
-                  type="button"
-                  className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
-                  onClick={() => {
-                    setCouponBusiness(business)
-                    setCouponOpen(true)
-                  }}
-                >
-                  Canjear
-                </Button>
-              </div>
+              <BusinessCard
+                key={business.id}
+                business={business}
+                onRedeemClick={(selected) => {
+                  setCouponBusiness(selected)
+                  setCouponOpen(true)
+                }}
+              />
             ))}
           </div>
         </>

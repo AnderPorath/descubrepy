@@ -5,19 +5,25 @@ import Link from "next/link"
 import Image from "next/image"
 import { MapPin, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { getImageUrl, type BusinessApi } from "@/lib/api"
 
 const DEFAULT_IMAGE = "/placeholder.jpg"
 
-export function BusinessCard({ business }: { business: BusinessApi }) {
+type BusinessCardProps = {
+  business: BusinessApi
+  onRedeemClick?: (business: BusinessApi) => void
+}
+
+export function BusinessCard({ business, onRedeemClick }: BusinessCardProps) {
   const resolved = getImageUrl(business.image_url) || DEFAULT_IMAGE
   const [imageUrl, setImageUrl] = useState(resolved)
   const rating = business.rating ?? 0
   const locationText = business.city?.trim()
 
   return (
-    <Link href={`/negocio/${business.slug}`} className="group block">
-      <article className="overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
+    <article className="group overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
+      <Link href={`/negocio/${business.slug}`} className="block">
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
             src={imageUrl}
@@ -69,7 +75,18 @@ export function BusinessCard({ business }: { business: BusinessApi }) {
             </div>
           ) : null}
         </div>
-      </article>
-    </Link>
+      </Link>
+      {onRedeemClick ? (
+        <div className="px-5 pb-5">
+          <Button
+            type="button"
+            className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+            onClick={() => onRedeemClick(business)}
+          >
+            Canjear
+          </Button>
+        </div>
+      ) : null}
+    </article>
   )
 }
