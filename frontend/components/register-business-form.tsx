@@ -130,7 +130,7 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
     { slug: "nutricion-deportiva", title: "Nutrición deportiva" },
   ],
   cafeterias: [
-    { slug: "cafe-especialidad", title: "Cafeterías" },
+    { slug: "cafe-especialidad", title: "Cafeterias" },
     { slug: "panaderias", title: "Panaderías" },
     { slug: "confiterias", title: "Confiterías" },
   ],

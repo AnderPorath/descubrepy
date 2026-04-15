@@ -114,7 +114,7 @@ ON CONFLICT (category_id, slug) DO NOTHING;
 
 -- Cafeterías
 INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'cafe-especialidad', 'Cafeterías', 1 FROM categories WHERE slug = 'cafeterias' LIMIT 1
+SELECT id, 'cafe-especialidad', 'Cafeterias', 1 FROM categories WHERE slug = 'cafeterias' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'panaderias', 'Panaderías', 2 FROM categories WHERE slug = 'cafeterias' LIMIT 1

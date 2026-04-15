@@ -80,7 +80,7 @@ const FALLBACK_SUBCATEGORIES: Record<string, Array<{ id: number; slug: string; t
     { id: 5, slug: "nutricion-deportiva", title: "Nutrición deportiva", sort_order: 5 },
   ],
   cafeterias: [
-    { id: 1, slug: "cafe-especialidad", title: "Cafeterías", sort_order: 1 },
+    { id: 1, slug: "cafe-especialidad", title: "Cafeterias", sort_order: 1 },
     { id: 2, slug: "panaderias", title: "Panaderías", sort_order: 2 },
     { id: 3, slug: "confiterias", title: "Confiterías", sort_order: 3 },
   ],

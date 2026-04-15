@@ -47,6 +47,9 @@ function normalizeSubcategoryTitle(sub: SubcategoryApi): SubcategoryApi {
   if (sub.slug === "comida-internacional") {
     return { ...sub, title: "Heladerías" }
   }
+  if (sub.slug === "cafe-especialidad") {
+    return { ...sub, title: "Cafeterias" }
+  }
   return sub
 }
 
