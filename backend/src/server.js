@@ -62,6 +62,29 @@ function normalizeDiscountPercent(value) {
   return rounded - (rounded % 5);
 }
 
+function appendCategorySlugFilter(sql, params, categorySlug) {
+  if (!categorySlug || !String(categorySlug).trim()) return sql;
+  const raw = String(categorySlug).trim().toLowerCase();
+  const slugs = raw === 'gastronomia' ? ['gastronomia', 'cafeterias'] : [raw];
+  if (slugs.length === 1) {
+    sql += ` AND EXISTS (
+      SELECT 1
+      FROM business_categories bc
+      INNER JOIN categories c2 ON c2.id = bc.category_id
+      WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = ${addParam(params, slugs[0])}
+    )`;
+    return sql;
+  }
+  const placeholders = slugs.map((s) => addParam(params, s));
+  sql += ` AND EXISTS (
+    SELECT 1
+    FROM business_categories bc
+    INNER JOIN categories c2 ON c2.id = bc.category_id
+    WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) IN (${placeholders.join(', ')})
+  )`;
+  return sql;
+}
+
 /** Normaliza texto para comparar ciudad (minúsculas, sin acentos) */
 function normalizeCity(str) {
   return String(str ?? '')
@@ -279,9 +302,7 @@ app.get('/api/featured', async (req, res) => {
       WHERE COALESCE(b.featured, false) = true
     `;
     const params = [];
-    if (categorySlug && String(categorySlug).trim()) {
-      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
-    }
+    sql = appendCategorySlugFilter(sql, params, categorySlug);
     if (subcategorySlug && String(subcategorySlug).trim()) {
       const subSlug = String(subcategorySlug).trim();
       sql += ` AND EXISTS (
@@ -318,9 +339,7 @@ app.get('/api/discounts', async (req, res) => {
       WHERE COALESCE(b.discount_percent, 0) > 0
     `;
     const params = [];
-    if (categorySlug && String(categorySlug).trim()) {
-      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
-    }
+    sql = appendCategorySlugFilter(sql, params, categorySlug);
     if (subcategorySlug && String(subcategorySlug).trim()) {
       const subSlug = String(subcategorySlug).trim();
       sql += ` AND EXISTS (
@@ -370,9 +389,7 @@ app.get('/api/businesses', async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
-    if (categorySlug && String(categorySlug).trim()) {
-      sql += ` AND EXISTS (SELECT 1 FROM business_categories bc INNER JOIN categories c2 ON c2.id = bc.category_id WHERE bc.business_id = b.id AND LOWER(TRIM(c2.slug)) = LOWER(${addParam(params, String(categorySlug).trim())}))`;
-    }
+    sql = appendCategorySlugFilter(sql, params, categorySlug);
     if (subcategorySlug && String(subcategorySlug).trim()) {
       const subSlug = String(subcategorySlug).trim();
       sql += ` AND EXISTS (

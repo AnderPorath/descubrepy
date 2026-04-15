@@ -27,6 +27,21 @@ async function safeFetch<T>(url: string, fallback: T): Promise<T> {
 export type CategoryApi = { id: number; slug: string; title: string; description: string | null; icon_name: string; business_count: number }
 
 export type SubcategoryApi = { id: number; slug: string; title: string; sort_order: number; business_count?: number }
+const MERGED_CATEGORY_PARENT = "gastronomia"
+const MERGED_CATEGORY_CHILD = "cafeterias"
+
+function normalizeCategories(categories: CategoryApi[]): CategoryApi[] {
+  if (!Array.isArray(categories) || categories.length === 0) return []
+  const parent = categories.find((c) => c.slug === MERGED_CATEGORY_PARENT)
+  const child = categories.find((c) => c.slug === MERGED_CATEGORY_CHILD)
+  const filtered = categories.filter((c) => c.slug !== MERGED_CATEGORY_CHILD)
+  if (!parent || !child) return filtered
+  return filtered.map((cat) =>
+    cat.slug === MERGED_CATEGORY_PARENT
+      ? { ...cat, business_count: Number(cat.business_count || 0) + Number(child.business_count || 0) }
+      : cat
+  )
+}
 
 function normalizeSubcategoryTitle(sub: SubcategoryApi): SubcategoryApi {
   if (sub.slug === "comida-internacional") {
@@ -40,7 +55,9 @@ export async function fetchCategories(): Promise<CategoryApi[]> {
   try {
     const res = await fetch(`${API_URL}/api/categories`, { cache: 'no-store' });
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    if (!Array.isArray(data)) return []
+    return normalizeCategories(data as CategoryApi[])
   } catch {
     return [];
   }
@@ -54,11 +71,42 @@ export async function fetchCategoriesFresh(): Promise<CategoryApi[]> {
 export async function fetchSubcategories(categorySlug: string): Promise<SubcategoryApi[]> {
   if (!categorySlug?.trim()) return []
   try {
-    const res = await fetch(`${API_URL}/api/subcategories?category=${encodeURIComponent(categorySlug.trim())}`, { cache: 'no-store' })
-    if (!res.ok) return []
-    const data = await res.json()
-    if (!Array.isArray(data)) return []
-    return data.map((sub) => normalizeSubcategoryTitle(sub as SubcategoryApi))
+    const normalizedCategory = categorySlug.trim().toLowerCase()
+    const categoriesToFetch =
+      normalizedCategory === MERGED_CATEGORY_PARENT
+        ? [MERGED_CATEGORY_PARENT, MERGED_CATEGORY_CHILD]
+        : [normalizedCategory]
+    const responses = await Promise.all(
+      categoriesToFetch.map((slug) =>
+        fetch(`${API_URL}/api/subcategories?category=${encodeURIComponent(slug)}`, { cache: 'no-store' })
+      )
+    )
+    const chunks = await Promise.all(
+      responses.map(async (res) => {
+        if (!res.ok) return []
+        const data = await res.json()
+        return Array.isArray(data) ? data : []
+      })
+    )
+    const merged = chunks.flat().map((sub) => normalizeSubcategoryTitle(sub as SubcategoryApi))
+    const bySlug = new Map<string, SubcategoryApi>()
+    for (const sub of merged) {
+      const existing = bySlug.get(sub.slug)
+      if (!existing) {
+        bySlug.set(sub.slug, sub)
+      } else {
+        bySlug.set(sub.slug, {
+          ...existing,
+          business_count: Number(existing.business_count || 0) + Number(sub.business_count || 0),
+        })
+      }
+    }
+    return [...bySlug.values()].sort((a, b) => {
+      const orderA = Number.isFinite(a.sort_order) ? a.sort_order : 999
+      const orderB = Number.isFinite(b.sort_order) ? b.sort_order : 999
+      if (orderA !== orderB) return orderA - orderB
+      return String(a.title).localeCompare(String(b.title))
+    })
   } catch {
     return []
   }
