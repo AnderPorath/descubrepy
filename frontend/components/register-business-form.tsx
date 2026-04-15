@@ -114,6 +114,9 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
     { slug: "comida-rapida", title: "Lomiterías" },
     { slug: "comida-internacional", title: "Heladerías" },
     { slug: "postres-reposteria", title: "Postres y repostería" },
+    { slug: "cafe-especialidad", title: "Cafeterias" },
+    { slug: "panaderias", title: "Panaderías" },
+    { slug: "confiterias", title: "Confiterías" },
   ],
   "belleza-y-spa": [
     { slug: "peluquerias", title: "Peluquerías" },
