@@ -36,6 +36,9 @@ export const SUBCATEGORY_EMOJI: Record<string, string> = {
   "gastronomia/comida-rapida": "🌯",
   "gastronomia/comida-internacional": "🍦",
   "gastronomia/postres-reposteria": "🍰",
+  "gastronomia/cafe-especialidad": "☕",
+  "gastronomia/panaderias": "🥖",
+  "gastronomia/confiterias": "🧁",
   // Belleza y Spa
   "belleza-y-spa/peluquerias": "💇",
   "belleza-y-spa/barberias": "💈",
@@ -51,7 +54,7 @@ export const SUBCATEGORY_EMOJI: Record<string, string> = {
   // Cafeterías
   "cafeterias/cafe-especialidad": "☕",
   "cafeterias/panaderias": "🥖",
-  "cafeterias/confiterias": "🍩",
+  "cafeterias/confiterias": "🧁",
   // Salud
   "salud/clinica": "🏥",
   "salud/farmacia": "💊",

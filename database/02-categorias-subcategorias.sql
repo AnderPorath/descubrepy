@@ -99,7 +99,7 @@ SELECT id, 'nutricion-deportiva', 'Nutrición deportiva', 5 FROM categories WHER
 
 -- Cafeterías
 INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'cafe-especialidad', 'Café de especialidad', 1 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
+SELECT id, 'cafe-especialidad', 'Cafeterías', 1 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'panaderias', 'Panaderías', 2 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
