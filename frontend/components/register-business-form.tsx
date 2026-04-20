@@ -56,15 +56,21 @@ function scheduleToOpeningHours(schedule: DaySchedule[]): string {
 
 /** Parsea texto "Lunes: 09:00-18:00" / "Martes: Cerrado" al array de horarios por día */
 function openingHoursToSchedule(text: string | null | undefined): DaySchedule[] {
+  const normalizeDay = (s: string) =>
+    String(s ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .trim()
   const result = Array.from({ length: 7 }, defaultDaySchedule)
   if (!text?.trim()) return result
   const lines = text.trim().split(/\r?\n/)
   for (const line of lines) {
-    const match = line.match(/^\s*(\w+)\s*:\s*(.+)$/i)
+    const match = line.match(/^\s*([^:]+?)\s*:\s*(.+)$/i)
     if (!match) continue
     const dayName = match[1].trim()
     const value = match[2].trim()
-    const dayIndex = DAYS.findIndex((d) => d.toLowerCase() === dayName.toLowerCase())
+    const dayIndex = DAYS.findIndex((d) => normalizeDay(d) === normalizeDay(dayName))
     if (dayIndex === -1) continue
     if (/cerrado/i.test(value)) {
       result[dayIndex] = { closed: true, from: "09:00", to: "18:00" }

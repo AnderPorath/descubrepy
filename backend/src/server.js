@@ -684,8 +684,10 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
     setParts.push(`subcategory_id = $${updates.length}`);
     updates.push(nameVal);
     setParts.push(`name = COALESCE($${updates.length}, name)`);
-    updates.push(location?.trim() || null);
-    setParts.push(`location = $${updates.length}`);
+    if (Object.prototype.hasOwnProperty.call(body, 'location')) {
+      updates.push(location != null ? String(location).trim() || null : null);
+      setParts.push(`location = $${updates.length}`);
+    }
     updates.push(cityVal);
     setParts.push(`city = COALESCE($${updates.length}, city)`);
     updates.push(Number.isFinite(lat) ? lat : null);
