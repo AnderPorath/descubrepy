@@ -438,14 +438,13 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     setError(null)
     const openingHoursStr = scheduleToOpeningHours(schedule)
     const locationValue = locationText.trim()
+    const hasCoordinates = mapLat != null && mapLng != null
     const payload = {
       name,
       category_slug: categorySlug,
       subcategory_slugs: selectedExtraSubcategorySlugs,
       subcategory_slug: subcategorySlug || undefined,
       city: canonicalizeDistrictName(cityVal),
-      latitude: mapLat,
-      longitude: mapLng,
       description: (form.querySelector('[name="description"]') as HTMLTextAreaElement)?.value?.trim() || undefined,
       phone: (form.querySelector('[name="phone"]') as HTMLInputElement)?.value?.trim() || undefined,
       instagram_url: (form.querySelector('[name="instagram_url"]') as HTMLInputElement)?.value?.trim() || undefined,
@@ -456,6 +455,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
       featured,
       discount_percent: discountPercent,
       ...(locationValue ? { location: locationValue } : {}),
+      ...(hasCoordinates ? { latitude: mapLat, longitude: mapLng } : {}),
     }
     if (isEdit && editSlug) {
       const { error: err } = await updateBusiness(editSlug, payload, token)

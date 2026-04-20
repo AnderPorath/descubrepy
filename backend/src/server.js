@@ -548,6 +548,8 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
       }
     }
     const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
+    const hasLatitude = Object.prototype.hasOwnProperty.call(body, 'latitude');
+    const hasLongitude = Object.prototype.hasOwnProperty.call(body, 'longitude');
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
     const insertRes = await db.query(
@@ -690,10 +692,14 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
     }
     updates.push(cityVal);
     setParts.push(`city = COALESCE($${updates.length}, city)`);
-    updates.push(Number.isFinite(lat) ? lat : null);
-    setParts.push(`latitude = $${updates.length}`);
-    updates.push(Number.isFinite(lng) ? lng : null);
-    setParts.push(`longitude = $${updates.length}`);
+    if (hasLatitude) {
+      updates.push(Number.isFinite(lat) ? lat : null);
+      setParts.push(`latitude = $${updates.length}`);
+    }
+    if (hasLongitude) {
+      updates.push(Number.isFinite(lng) ? lng : null);
+      setParts.push(`longitude = $${updates.length}`);
+    }
     if (description !== undefined) {
       setParts.push(`description = $${updates.length + 1}`);
       updates.push(description != null ? String(description).trim() || null : null);
