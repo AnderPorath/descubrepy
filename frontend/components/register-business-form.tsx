@@ -115,7 +115,6 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
     { slug: "postres-reposteria", title: "Postres y repostería" },
     { slug: "cafe-especialidad", title: "Cafeterias" },
     { slug: "panaderias", title: "Panaderías" },
-    { slug: "confiterias", title: "Confiterías" },
   ],
   "belleza-y-spa": [
     { slug: "peluquerias", title: "Peluquerías" },
@@ -134,7 +133,6 @@ const STATIC_SUBCATEGORIES: Record<string, { slug: string; title: string }[]> = 
   cafeterias: [
     { slug: "cafe-especialidad", title: "Cafeterias" },
     { slug: "panaderias", title: "Panaderías" },
-    { slug: "confiterias", title: "Confiterías" },
   ],
   salud: [
     { slug: "clinica", title: "Clínica" },

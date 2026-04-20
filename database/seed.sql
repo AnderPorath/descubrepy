@@ -119,9 +119,6 @@ ON CONFLICT (category_id, slug) DO NOTHING;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'panaderias', 'Panaderías', 2 FROM categories WHERE slug = 'cafeterias' LIMIT 1
 ON CONFLICT (category_id, slug) DO NOTHING;
-INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'confiterias', 'Confiterías', 3 FROM categories WHERE slug = 'cafeterias' LIMIT 1
-ON CONFLICT (category_id, slug) DO NOTHING;
 
 -- Salud
 INSERT INTO subcategories (category_id, slug, title, sort_order)

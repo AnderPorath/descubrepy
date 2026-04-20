@@ -102,8 +102,6 @@ INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'cafe-especialidad', 'Cafeterias', 1 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
 INSERT INTO subcategories (category_id, slug, title, sort_order)
 SELECT id, 'panaderias', 'Panaderías', 2 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
-INSERT INTO subcategories (category_id, slug, title, sort_order)
-SELECT id, 'confiterias', 'Confiterías', 3 FROM categories WHERE slug = 'cafeterias' LIMIT 1;
 
 -- Salud
 INSERT INTO subcategories (category_id, slug, title, sort_order)

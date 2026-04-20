@@ -53,6 +53,10 @@ function normalizeSubcategoryTitle(sub: SubcategoryApi): SubcategoryApi {
   return sub
 }
 
+function isVisibleSubcategory(sub: SubcategoryApi): boolean {
+  return sub.slug !== "confiterias"
+}
+
 /** Categorías sin caché para que el business_count se actualice al eliminar/crear negocios. */
 export async function fetchCategories(): Promise<CategoryApi[]> {
   try {
@@ -91,7 +95,10 @@ export async function fetchSubcategories(categorySlug: string): Promise<Subcateg
         return Array.isArray(data) ? data : []
       })
     )
-    const merged = chunks.flat().map((sub) => normalizeSubcategoryTitle(sub as SubcategoryApi))
+    const merged = chunks
+      .flat()
+      .map((sub) => normalizeSubcategoryTitle(sub as SubcategoryApi))
+      .filter((sub) => isVisibleSubcategory(sub))
     const bySlug = new Map<string, SubcategoryApi>()
     for (const sub of merged) {
       const existing = bySlug.get(sub.slug)

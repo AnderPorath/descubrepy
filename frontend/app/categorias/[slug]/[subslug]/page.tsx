@@ -42,7 +42,7 @@ const FALLBACK_SUBCATEGORIES: Record<string, Array<{ slug: string; title: string
   ],
   "belleza-y-spa": [{ slug: "peluquerias", title: "Peluquerías" }, { slug: "barberias", title: "Barberías" }, { slug: "spa", title: "Spa" }, { slug: "unas", title: "Uñas" }, { slug: "estetica", title: "Estética" }],
   fitness: [{ slug: "gimnasios", title: "Gimnasios" }, { slug: "yoga", title: "Yoga" }, { slug: "pilates", title: "Pilates" }, { slug: "crossfit", title: "CrossFit" }, { slug: "nutricion-deportiva", title: "Nutrición deportiva" }],
-  cafeterias: [{ slug: "cafe-especialidad", title: "Cafeterias" }, { slug: "panaderias", title: "Panaderías" }, { slug: "confiterias", title: "Confiterías" }],
+  cafeterias: [{ slug: "cafe-especialidad", title: "Cafeterias" }, { slug: "panaderias", title: "Panaderías" }],
   salud: [{ slug: "clinica", title: "Clínica" }, { slug: "farmacia", title: "Farmacia" }, { slug: "gimnasio", title: "Gimnasio" }, { slug: "odontologia", title: "Odontología" }, { slug: "pediatria", title: "Pediatría" }, { slug: "laboratorios", title: "Laboratorios" }],
   automotriz: [{ slug: "talleres-mecanicos", title: "Talleres mecánicos" }, { slug: "lubricentros", title: "Lubricentros" }, { slug: "cerrajeria-automotriz", title: "Cerrajería automotriz" }, { slug: "concesionarias", title: "Concesionarias" }],
   moda: [{ slug: "ropa-mujer", title: "Ropa mujer" }, { slug: "ropa-hombre", title: "Ropa hombre" }, { slug: "calzado", title: "Calzado" }, { slug: "accesorios", title: "Accesorios" }, { slug: "boutiques", title: "Boutiques" }],
