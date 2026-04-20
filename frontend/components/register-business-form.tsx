@@ -273,6 +273,11 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     () => (departmentKey ? getDistrictsForDepartment(departmentKey) : []),
     [departmentKey]
   )
+  const districtOptionsWithCurrent = useMemo(() => {
+    if (!city) return districtOptions
+    if (districtOptions.includes(city)) return districtOptions
+    return [city, ...districtOptions]
+  }, [districtOptions, city])
 
   // Pre-llenar estado en modo edición
   useEffect(() => {
@@ -305,7 +310,6 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
 
   useEffect(() => {
     if (!departmentKey.trim()) {
-      if (city) setCity("")
       return
     }
     const districts = getDistrictsForDepartment(departmentKey)
@@ -577,7 +581,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
                     <option value="">
                       {departmentKey ? "Distrito *" : "Primero elegí departamento"}
                     </option>
-                    {districtOptions.map((district) => (
+                    {districtOptionsWithCurrent.map((district) => (
                       <option key={`${departmentKey}-${district}`} value={district}>
                         {district}
                       </option>
