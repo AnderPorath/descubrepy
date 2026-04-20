@@ -548,8 +548,6 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
       }
     }
     const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
-    const hasLatitude = Object.prototype.hasOwnProperty.call(body, 'latitude');
-    const hasLongitude = Object.prototype.hasOwnProperty.call(body, 'longitude');
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
     const insertRes = await db.query(
@@ -674,6 +672,8 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       }
     }
     const galleryJson = galleryVal ? JSON.stringify(galleryVal) : null;
+    const hasLatitude = Object.prototype.hasOwnProperty.call(body, 'latitude');
+    const hasLongitude = Object.prototype.hasOwnProperty.call(body, 'longitude');
     const lat = latitude != null && latitude !== '' ? parseFloat(latitude) : null;
     const lng = longitude != null && longitude !== '' ? parseFloat(longitude) : null;
     const nameVal = name != null && String(name).trim() ? String(name).trim() : null;
