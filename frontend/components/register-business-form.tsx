@@ -252,6 +252,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
   const [subcategorySlug, setSubcategorySlug] = useState<string>("")
   const [departmentKey, setDepartmentKey] = useState<string>("")
   const [city, setCity] = useState<string>("")
+  const [locationText, setLocationText] = useState<string>("")
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string>("")
   const [galleryUrls, setGalleryUrls] = useState<string[]>([])
@@ -288,6 +289,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     const initialDistrict = canonicalizeDistrictName(initialData.city ?? "")
     setCity(initialDistrict)
     setDepartmentKey(findDepartmentKeyForDistrict(initialDistrict) ?? "")
+    setLocationText(initialData.location ?? "")
     setFeatured(Boolean(initialData.featured))
     setDiscountPercent(Number(initialData.discount_percent || 0))
     setCoverUrl(initialData.image_url ?? "")
@@ -431,13 +433,13 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     setSubmitting(true)
     setError(null)
     const openingHoursStr = scheduleToOpeningHours(schedule)
+    const locationValue = locationText.trim()
     const payload = {
       name,
       category_slug: categorySlug,
       subcategory_slugs: selectedExtraSubcategorySlugs,
       subcategory_slug: subcategorySlug || undefined,
       city: canonicalizeDistrictName(cityVal),
-      location: (form.querySelector('[name="location"]') as HTMLInputElement)?.value?.trim() || undefined,
       latitude: mapLat,
       longitude: mapLng,
       description: (form.querySelector('[name="description"]') as HTMLTextAreaElement)?.value?.trim() || undefined,
@@ -449,6 +451,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
       gallery_images: galleryUrls.length ? galleryUrls : undefined,
       featured,
       discount_percent: discountPercent,
+      ...(locationValue ? { location: locationValue } : {}),
     }
     if (isEdit && editSlug) {
       const { error: err } = await updateBusiness(editSlug, payload, token)
@@ -717,7 +720,8 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
                 <Input
                   name="location"
                   placeholder="Dirección o referencia (ej: Av. España 123)"
-                  defaultValue={initialData?.location ?? ""}
+                  value={locationText}
+                  onChange={(e) => setLocationText(e.target.value)}
                   className="flex-1 rounded-xl border-border bg-card"
                 />
               </div>
