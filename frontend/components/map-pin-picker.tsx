@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import "leaflet/dist/leaflet.css"
 
 const ASUNCION = { lat: -25.2633, lng: -57.5759 }
@@ -15,6 +15,7 @@ export function MapPinPicker({ latitude, longitude, onLocationChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<{ remove: () => void } | null>(null)
   const markerRef = useRef<{ setLatLng: (latlng: [number, number]) => void; remove: () => void } | null>(null)
+  const [mapReady, setMapReady] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined" || !containerRef.current) return
@@ -50,9 +51,11 @@ export function MapPinPicker({ latitude, longitude, onLocationChange }: Props) {
 
       mapRef.current = map
       markerRef.current = marker
+      setMapReady(true)
     })
     return () => {
       cancelled = true
+      setMapReady(false)
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -64,7 +67,7 @@ export function MapPinPicker({ latitude, longitude, onLocationChange }: Props) {
   useEffect(() => {
     const map = mapRef.current
     const marker = markerRef.current
-    if (!map) return
+    if (!map || !mapReady) return
     if (latitude != null && longitude != null) {
       if (marker) marker.setLatLng([latitude, longitude])
       else {
@@ -77,7 +80,7 @@ export function MapPinPicker({ latitude, longitude, onLocationChange }: Props) {
       marker.remove()
       markerRef.current = null
     }
-  }, [latitude, longitude])
+  }, [latitude, longitude, mapReady])
 
   return (
     <div
