@@ -85,6 +85,22 @@ function appendCategorySlugFilter(sql, params, categorySlug) {
   return sql;
 }
 
+async function resolveMergedCategoryIds(categoryId, categorySlug) {
+  const ids = new Set()
+  if (categoryId) ids.add(Number(categoryId))
+  const raw = String(categorySlug || '').trim().toLowerCase()
+  if (!raw) return [...ids]
+  if (raw !== 'gastronomia' && raw !== 'cafeterias') return [...ids]
+  const otherSlug = raw === 'gastronomia' ? 'cafeterias' : 'gastronomia'
+  const other = await db.query(
+    'SELECT id FROM categories WHERE LOWER(TRIM(slug)) = LOWER($1) LIMIT 1',
+    [otherSlug]
+  )
+  const otherId = other.rows?.[0]?.id
+  if (otherId) ids.add(Number(otherId))
+  return [...ids]
+}
+
 /** Normaliza texto para comparar ciudad (minúsculas, sin acentos) */
 function normalizeCity(str) {
   return String(str ?? '')
@@ -183,18 +199,22 @@ ensureBusinessDiscountSchema().catch((err) => {
   console.error('[schema] Error al preparar discount_percent:', err.message)
 })
 
-/** Sincroniza filas en business_subcategories (principal + slugs extra, misma categoría). */
-async function syncBusinessSubcategories(businessId, categoryId, primarySubcategoryId, extraSubcategorySlugs) {
+/** Sincroniza filas en business_subcategories (principal + slugs extra). */
+async function syncBusinessSubcategories(businessId, categoryIds, primarySubcategoryId, extraSubcategorySlugs) {
   await db.query('DELETE FROM business_subcategories WHERE business_id = $1', [businessId])
   const ids = new Set()
   if (primarySubcategoryId) ids.add(primarySubcategoryId)
+  const validCategoryIds = Array.isArray(categoryIds)
+    ? [...new Set(categoryIds.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0))]
+    : []
+  if (validCategoryIds.length === 0) return
   const extras = Array.isArray(extraSubcategorySlugs) ? extraSubcategorySlugs : []
   for (const raw of extras) {
     const slug = String(raw || '').trim()
     if (!slug) continue
     const subResult = await db.query(
-      'SELECT id FROM subcategories WHERE category_id = $1 AND LOWER(TRIM(slug)) = LOWER($2)',
-      [categoryId, slug]
+      'SELECT id FROM subcategories WHERE category_id = ANY($1::int[]) AND LOWER(TRIM(slug)) = LOWER($2) LIMIT 1',
+      [validCategoryIds, slug]
     )
     const sid = subResult.rows?.[0]?.id
     if (sid) ids.add(sid)
@@ -496,12 +516,13 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         : `No hay categoría con slug "${slugTrim}". Revisá que el slug coincida con los de la base.`;
       return res.status(400).json({ error: msg, received_slug: slugTrim });
     }
+    const categoryIdsForSubcategories = await resolveMergedCategoryIds(category_id, slugTrim);
     let subcategory_id = null;
     if (subcategory_slug?.trim()) {
       const subSlug = String(subcategory_slug).trim();
       const subResult = await db.query(
-        'SELECT id FROM subcategories WHERE category_id = $1 AND LOWER(TRIM(slug)) = LOWER($2)',
-        [category_id, subSlug]
+        'SELECT id FROM subcategories WHERE category_id = ANY($1::int[]) AND LOWER(TRIM(slug)) = LOWER($2) LIMIT 1',
+        [categoryIdsForSubcategories, subSlug]
       );
       const subRow = subResult.rows?.[0];
       if (subRow) subcategory_id = subRow.id;
@@ -561,7 +582,7 @@ app.post('/api/businesses', requireAdmin, async (req, res) => {
         'INSERT INTO business_categories (business_id, category_id) VALUES ($1, $2) ON CONFLICT (business_id, category_id) DO NOTHING',
         [businessId, category_id]
       );
-      await syncBusinessSubcategories(businessId, category_id, subcategory_id, extraSubSlugs);
+      await syncBusinessSubcategories(businessId, categoryIdsForSubcategories, subcategory_id, extraSubSlugs);
     }
     const rowResult = await db.query(
       `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
@@ -629,11 +650,12 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       const catRow = catResult.rows?.[0];
       if (catRow) category_id = catRow.id;
     }
+    const categoryIdsForSubcategories = await resolveMergedCategoryIds(category_id, categorySlugParam);
     let subcategory_id = null;
     if (subcategory_slug?.trim()) {
       const subResult = await db.query(
-        'SELECT id FROM subcategories WHERE category_id = $1 AND LOWER(TRIM(slug)) = LOWER($2)',
-        [category_id, String(subcategory_slug).trim()]
+        'SELECT id FROM subcategories WHERE category_id = ANY($1::int[]) AND LOWER(TRIM(slug)) = LOWER($2) LIMIT 1',
+        [categoryIdsForSubcategories, String(subcategory_slug).trim()]
       );
       const subRow = subResult.rows?.[0];
       if (subRow) subcategory_id = subRow.id;
@@ -720,7 +742,7 @@ app.put('/api/businesses/:slug', requireAdmin, async (req, res) => {
       'INSERT INTO business_categories (business_id, category_id) VALUES ($1, $2) ON CONFLICT (business_id, category_id) DO NOTHING',
       [existing.id, category_id]
     );
-    await syncBusinessSubcategories(existing.id, category_id, subcategory_id, extraSubSlugsPut);
+    await syncBusinessSubcategories(existing.id, categoryIdsForSubcategories, subcategory_id, extraSubSlugsPut);
 
     const rowResult = await db.query(
       `SELECT b.id, b.name, b.slug, b.location, b.city, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,

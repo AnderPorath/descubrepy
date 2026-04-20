@@ -86,7 +86,6 @@ const STATIC_CATEGORIES: { slug: string; title: string }[] = [
   { slug: "gastronomia", title: "Gastronomía" },
   { slug: "belleza-y-spa", title: "Belleza y Spa" },
   { slug: "fitness", title: "Fitness" },
-  { slug: "cafeterias", title: "Cafeterías" },
   { slug: "salud", title: "Salud" },
   { slug: "automotriz", title: "Automotriz" },
   { slug: "moda", title: "Moda" },
