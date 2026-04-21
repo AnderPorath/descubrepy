@@ -25,6 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <meta name="impact-site-verification" content="59c30482-792d-4fed-9282-98ceafbfcc93" />
+      </head>
       <body className={`${_inter.variable} ${_playfair.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
         <Analytics />
