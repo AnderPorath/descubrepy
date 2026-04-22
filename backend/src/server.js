@@ -336,7 +336,7 @@ app.get('/api/featured', async (req, res) => {
       const term = `%${String(q).trim()}%`;
       sql += ` AND (b.name ILIKE ${addParam(params, term)} OR b.location ILIKE ${addParam(params, term)} OR b.city ILIKE ${addParam(params, term)})`;
     }
-    sql += ' ORDER BY b.rating DESC LIMIT 50';
+    sql += ' ORDER BY RANDOM() LIMIT 50';
     const result = await db.query(sql, params);
     res.json(result.rows);
   } catch (err) {
