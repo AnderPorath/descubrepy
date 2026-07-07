@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -15,6 +16,8 @@ import {
 import { fetchStats } from "@/lib/api"
 import { canonicalizeDistrictName } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
+
+const HERO_BG = "/images/hero-inicio.jpg"
 
 const QUICK_CATEGORIES_LEFT = [
   { label: "RESTAURANTES", href: "/categorias/gastronomia?from=inicio", icon: UtensilsCrossed },
@@ -54,11 +57,17 @@ export function HeroSection() {
 
   return (
     <section className="relative isolate min-h-[70vh] overflow-hidden md:min-h-[80vh]">
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/hero-collage.png')" }}
-      />
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/55 via-black/40 to-transparent" />
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={HERO_BG}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      </div>
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/45 via-black/25 to-transparent" />
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] h-28 bg-gradient-to-t from-white via-white/95 to-transparent sm:h-32" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-16 pt-14 text-center sm:px-6 md:pb-20 md:pt-16 lg:max-w-7xl lg:pb-24 lg:pt-20">
