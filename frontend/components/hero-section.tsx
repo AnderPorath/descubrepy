@@ -56,7 +56,7 @@ export function HeroSection() {
     <section className="relative isolate min-h-[70vh] overflow-hidden md:min-h-[80vh]">
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/py.png')" }}
+        style={{ backgroundImage: "url('/images/hero-collage.png')" }}
       />
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/65 via-black/55 to-black/70" />
 
