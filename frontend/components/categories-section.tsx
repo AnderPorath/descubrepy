@@ -38,7 +38,7 @@ export async function CategoriesSection() {
   }
 
   return (
-    <section id="categorias" className="bg-white pb-20 pt-8 lg:pb-28 lg:pt-10">
+    <section id="categorias" className="bg-white pb-20 pt-4 lg:pb-28 lg:pt-6">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">

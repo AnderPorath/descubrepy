@@ -27,7 +27,7 @@ const QUICK_CATEGORIES_RIGHT = [
 ] as const
 
 const heroSelectClass =
-  "!w-full min-w-0 border-0 bg-transparent px-2 shadow-none focus:ring-0 focus-visible:ring-0 [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left h-11 sm:h-12"
+  "!w-full min-w-0 border-0 bg-transparent px-3 shadow-none focus:ring-0 focus-visible:ring-0 [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left h-12 text-sm font-medium text-neutral-700"
 
 export function HeroSection() {
   const [query, setQuery] = useState("")
@@ -58,9 +58,10 @@ export function HeroSection() {
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/hero-collage.png')" }}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/65 via-black/55 to-black/70" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/55 via-black/40 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] h-28 bg-gradient-to-t from-white via-white/95 to-transparent sm:h-32" />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-24 pt-14 text-center sm:px-6 md:pb-28 md:pt-16 lg:max-w-7xl lg:pb-32 lg:pt-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-16 pt-14 text-center sm:px-6 md:pb-20 md:pt-16 lg:max-w-7xl lg:pb-24 lg:pt-20">
         <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur-sm sm:text-[11px]">
           🇵🇾 Tu guía digital de Paraguay
         </span>
@@ -82,8 +83,8 @@ export function HeroSection() {
 
         {/* Barra de búsqueda */}
         <div className="mt-7 w-full max-w-5xl md:mt-9">
-          <div className="overflow-hidden rounded-2xl bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)] lg:rounded-full lg:p-1.5">
-            <div className="flex flex-col lg:flex-row lg:items-stretch">
+          <div className="rounded-2xl border border-white/50 bg-white/95 p-2 shadow-[0_12px_48px_-8px_rgba(0,0,0,0.35)] backdrop-blur-md sm:rounded-[2rem] sm:p-2.5">
+            <div className="flex flex-col gap-1.5 lg:flex-row lg:items-center lg:gap-0">
               <DepartmentDistrictFilters
                 departmentKey={departmentKey}
                 district={city}
@@ -93,13 +94,13 @@ export function HeroSection() {
                 showTriggerIcon
                 layout="row"
                 groupByRegion
-                filtersRowClassName="grid w-full shrink-0 grid-cols-1 divide-y divide-neutral-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:w-[min(100%,28rem)] lg:border-r lg:border-neutral-100"
-                wrapClassName="flex min-w-0 w-full px-1"
-                departmentTriggerClassName={heroSelectClass}
-                districtTriggerClassName={heroSelectClass}
+                filtersRowClassName="grid w-full shrink-0 grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-0 lg:w-[min(100%,30rem)] lg:gap-0 lg:pr-1"
+                wrapClassName="flex min-w-0 w-full rounded-xl bg-neutral-50/80 px-1 lg:rounded-full lg:bg-transparent lg:px-0"
+                departmentTriggerClassName={`${heroSelectClass} lg:rounded-l-full lg:rounded-r-none lg:bg-neutral-50/80 lg:pl-4`}
+                districtTriggerClassName={`${heroSelectClass} lg:rounded-none lg:bg-neutral-50/80`}
               />
 
-              <div className="relative min-h-11 min-w-0 flex-1 border-b border-neutral-100 lg:min-h-12 lg:border-b-0 lg:border-r">
+              <div className="relative min-h-12 min-w-0 flex-1 lg:mx-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="search"
@@ -110,14 +111,14 @@ export function HeroSection() {
                   }}
                   placeholder="¿Qué buscás? Ej. pizzería, peluquería, gimnasio…"
                   aria-label="Buscar negocios"
-                  className="h-11 w-full bg-transparent py-2 pl-11 pr-4 text-sm text-neutral-800 outline-none placeholder:text-neutral-400 lg:h-12"
+                  className="h-12 w-full rounded-xl bg-neutral-50/80 py-2 pl-11 pr-4 text-sm text-neutral-800 outline-none transition placeholder:text-neutral-400 focus:bg-white focus:ring-2 focus:ring-primary/15 lg:rounded-full lg:bg-neutral-50/80"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/92 active:scale-[0.99] lg:h-12 lg:w-auto lg:min-w-[8.5rem] lg:rounded-full lg:px-8"
+                className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.99] lg:w-auto lg:min-w-[9.5rem] lg:rounded-full lg:px-9"
               >
                 <Search className="h-4 w-4" />
                 Buscar
@@ -174,17 +175,6 @@ export function HeroSection() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 leading-none">
-        <svg
-          viewBox="0 0 1440 100"
-          preserveAspectRatio="none"
-          className="block h-12 w-full fill-white sm:h-16 md:h-20"
-          aria-hidden
-        >
-          <path d="M0,48 C360,96 720,0 1080,48 C1260,72 1380,64 1440,56 L1440,100 L0,100 Z" />
-        </svg>
       </div>
     </section>
   )
