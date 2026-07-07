@@ -21,6 +21,11 @@ type Props = {
   onDistrictChange: (district: string) => void
   /** Si es false, no se muestran las etiquetas (útil en barras compactas tipo hero). */
   showLabels?: boolean
+  /** Muestra ícono de ubicación dentro del selector (p. ej. barra del hero). */
+  showTriggerIcon?: boolean
+  /** Agrupa departamento y distrito en una fila horizontal. */
+  layout?: "stack" | "row"
+  filtersRowClassName?: string
   labelClassName?: string
   departmentTriggerClassName?: string
   districtTriggerClassName?: string
@@ -39,13 +44,16 @@ export function DepartmentDistrictFilters({
   wrapClassName = "flex flex-col gap-1.5 w-full md:w-auto",
   groupByRegion = true,
   showLabels = true,
+  showTriggerIcon = false,
+  layout = "stack",
+  filtersRowClassName = "flex w-full min-w-0 flex-col gap-0 sm:flex-row sm:items-center",
 }: Props) {
   const deptSelectId = useId()
   const districtSelectId = useId()
   const districts = departmentKey ? getDistrictsForDepartment(departmentKey) : []
   const grouped = getDepartmentsGrouped()
 
-  return (
+  const content = (
     <>
       <div className={wrapClassName}>
         {showLabels ? (
@@ -67,6 +75,7 @@ export function DepartmentDistrictFilters({
             className={departmentTriggerClassName}
             aria-label={showLabels ? undefined : "Departamento"}
           >
+            {showTriggerIcon ? <MapPin className="h-4 w-4 shrink-0 text-neutral-400" /> : null}
             <SelectValue placeholder="Todos los departamentos" />
           </SelectTrigger>
           <SelectContent className="max-h-[min(24rem,70vh)]">
@@ -110,6 +119,7 @@ export function DepartmentDistrictFilters({
             disabled={!departmentKey}
             aria-label={showLabels ? undefined : "Distrito"}
           >
+            {showTriggerIcon ? <MapPin className="h-4 w-4 shrink-0 text-neutral-400" /> : null}
             <SelectValue
               placeholder={departmentKey ? "Todos los distritos" : "Elegí primero el departamento"}
             />
@@ -126,4 +136,10 @@ export function DepartmentDistrictFilters({
       </div>
     </>
   )
+
+  if (layout === "row") {
+    return <div className={filtersRowClassName}>{content}</div>
+  }
+
+  return content
 }

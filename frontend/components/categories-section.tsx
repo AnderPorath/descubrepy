@@ -38,12 +38,13 @@ export async function CategoriesSection() {
   }
 
   return (
-    <section id="categorias" className="bg-white py-20 lg:py-28">
+    <section id="categorias" className="bg-white pb-20 pt-8 lg:pb-28 lg:pt-10">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Encuentra lo que buscas
           </h2>
+          <div className="mx-auto mt-4 h-1 w-14 rounded-full bg-accent" />
           <p className="mx-auto mt-5 max-w-xl text-base font-normal leading-relaxed text-gray-500">
             Navega entre nuestras categorias y descubri negocios increibles en todo Paraguay.
           </p>
