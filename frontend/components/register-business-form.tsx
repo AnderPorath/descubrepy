@@ -36,25 +36,46 @@ const TIME_OPTIONS: string[] = (() => {
 })()
 const DISCOUNT_OPTIONS = Array.from({ length: 20 }, (_, i) => i * 5)
 
-type DaySchedule = { closed: boolean; from: string; to: string }
+type DaySchedule = {
+  closed: boolean
+  from: string
+  to: string
+  /** Segundo turno (ej. reabre después del mediodía) */
+  hasSecondShift: boolean
+  from2: string
+  to2: string
+}
 
 const defaultDaySchedule = (): DaySchedule => ({
   closed: true,
   from: "09:00",
   to: "18:00",
+  hasSecondShift: false,
+  from2: "16:00",
+  to2: "20:00",
 })
+
+function padTime(t: string): string {
+  const m = String(t ?? "").trim().match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return t
+  return `${m[1].padStart(2, "0")}:${m[2]}`
+}
 
 function scheduleToOpeningHours(schedule: DaySchedule[]): string {
   return schedule
     .map((s, i) => {
       const day = DAYS[i]
       if (s.closed) return `${day}: Cerrado`
-      return `${day}: ${s.from}-${s.to}`
+      const first = `${s.from}-${s.to}`
+      if (s.hasSecondShift && s.from2 && s.to2) {
+        return `${day}: ${first}, ${s.from2}-${s.to2}`
+      }
+      return `${day}: ${first}`
     })
     .join("\n")
 }
 
-/** Parsea texto "Lunes: 09:00-18:00" / "Martes: Cerrado" al array de horarios por día */
+/** Parsea "Lunes: 09:00-18:00" / "Lunes: 08:00-12:00, 16:00-20:00" / "Martes: Cerrado" */
 function openingHoursToSchedule(text: string | null | undefined): DaySchedule[] {
   const normalizeDay = (s: string) =>
     String(s ?? "")
@@ -73,14 +94,17 @@ function openingHoursToSchedule(text: string | null | undefined): DaySchedule[] 
     const dayIndex = DAYS.findIndex((d) => normalizeDay(d) === normalizeDay(dayName))
     if (dayIndex === -1) continue
     if (/cerrado/i.test(value)) {
-      result[dayIndex] = { closed: true, from: "09:00", to: "18:00" }
+      result[dayIndex] = defaultDaySchedule()
     } else {
-      const timeMatch = value.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/)
-      if (timeMatch) {
+      const ranges = [...value.matchAll(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/g)]
+      if (ranges.length >= 1) {
         result[dayIndex] = {
           closed: false,
-          from: timeMatch[1].length === 4 ? `0${timeMatch[1]}` : timeMatch[1],
-          to: timeMatch[2].length === 4 ? `0${timeMatch[2]}` : timeMatch[2],
+          from: padTime(ranges[0][1]),
+          to: padTime(ranges[0][2]),
+          hasSecondShift: ranges.length >= 2,
+          from2: ranges[1] ? padTime(ranges[1][1]) : "16:00",
+          to2: ranges[1] ? padTime(ranges[1][2]) : "20:00",
         }
       }
     }
@@ -628,62 +652,134 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
                     <Clock className="h-4 w-4 text-accent" />
                   </div>
-                  <span className="text-sm text-muted-foreground">Elegí el horario de cada día o marcá Cerrado</span>
+                  <span className="text-sm text-muted-foreground">
+                    Elegí el horario de cada día. Si cierra al mediodía, activá el segundo turno.
+                  </span>
                 </div>
                 <div className="flex flex-col gap-2">
                   {DAYS.map((day, i) => (
-                    <div key={day} className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-background/50 p-2 sm:gap-3">
-                      <span className="w-24 shrink-0 text-sm font-medium text-foreground">{day}</span>
-                      <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground">
-                        <input
-                          type="checkbox"
-                          checked={schedule[i].closed}
-                          onChange={(e) => {
-                            setSchedule((prev) => {
-                              const next = [...prev]
-                              next[i] = { ...next[i], closed: e.target.checked }
-                              return next
-                            })
-                          }}
-                          className="h-4 w-4 rounded border-border"
-                        />
-                        Cerrado
-                      </label>
+                    <div
+                      key={day}
+                      className="flex flex-col gap-2 rounded-lg border border-border/60 bg-background/50 p-2 sm:p-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span className="w-24 shrink-0 text-sm font-medium text-foreground">{day}</span>
+                        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={schedule[i].closed}
+                            onChange={(e) => {
+                              setSchedule((prev) => {
+                                const next = [...prev]
+                                next[i] = { ...next[i], closed: e.target.checked }
+                                return next
+                              })
+                            }}
+                            className="h-4 w-4 rounded border-border"
+                          />
+                          Cerrado
+                        </label>
+                        {!schedule[i].closed && (
+                          <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground">
+                            <input
+                              type="checkbox"
+                              checked={schedule[i].hasSecondShift}
+                              onChange={(e) => {
+                                setSchedule((prev) => {
+                                  const next = [...prev]
+                                  next[i] = { ...next[i], hasSecondShift: e.target.checked }
+                                  return next
+                                })
+                              }}
+                              className="h-4 w-4 rounded border-border"
+                            />
+                            Cierra al mediodía
+                          </label>
+                        )}
+                      </div>
                       {!schedule[i].closed && (
-                        <>
-                          <span className="text-xs text-muted-foreground">desde</span>
-                          <select
-                            value={schedule[i].from}
-                            onChange={(e) => {
-                              setSchedule((prev) => {
-                                const next = [...prev]
-                                next[i] = { ...next[i], from: e.target.value }
-                                return next
-                              })
-                            }}
-                            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
-                          >
-                            {TIME_OPTIONS.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
-                          <span className="text-xs text-muted-foreground">hasta</span>
-                          <select
-                            value={schedule[i].to}
-                            onChange={(e) => {
-                              setSchedule((prev) => {
-                                const next = [...prev]
-                                next[i] = { ...next[i], to: e.target.value }
-                                return next
-                              })
-                            }}
-                            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
-                          >
-                            {TIME_OPTIONS.map((t) => (
-                              <option key={t} value={t}>{t}</option>
-                            ))}
-                          </select>
-                        </>
+                        <div className="flex flex-col gap-2 pl-0 sm:pl-28">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              {schedule[i].hasSecondShift ? "Mañana" : "Desde"}
+                            </span>
+                            <select
+                              value={schedule[i].from}
+                              onChange={(e) => {
+                                setSchedule((prev) => {
+                                  const next = [...prev]
+                                  next[i] = { ...next[i], from: e.target.value }
+                                  return next
+                                })
+                              }}
+                              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                            >
+                              {TIME_OPTIONS.map((t) => (
+                                <option key={t} value={t}>
+                                  {t}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-xs text-muted-foreground">hasta</span>
+                            <select
+                              value={schedule[i].to}
+                              onChange={(e) => {
+                                setSchedule((prev) => {
+                                  const next = [...prev]
+                                  next[i] = { ...next[i], to: e.target.value }
+                                  return next
+                                })
+                              }}
+                              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                            >
+                              {TIME_OPTIONS.map((t) => (
+                                <option key={t} value={t}>
+                                  {t}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {schedule[i].hasSecondShift && (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Tarde</span>
+                              <select
+                                value={schedule[i].from2}
+                                onChange={(e) => {
+                                  setSchedule((prev) => {
+                                    const next = [...prev]
+                                    next[i] = { ...next[i], from2: e.target.value }
+                                    return next
+                                  })
+                                }}
+                                className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                              >
+                                {TIME_OPTIONS.map((t) => (
+                                  <option key={t} value={t}>
+                                    {t}
+                                  </option>
+                                ))}
+                              </select>
+                              <span className="text-xs text-muted-foreground">hasta</span>
+                              <select
+                                value={schedule[i].to2}
+                                onChange={(e) => {
+                                  setSchedule((prev) => {
+                                    const next = [...prev]
+                                    next[i] = { ...next[i], to2: e.target.value }
+                                    return next
+                                  })
+                                }}
+                                className="rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                              >
+                                {TIME_OPTIONS.map((t) => (
+                                  <option key={t} value={t}>
+                                    {t}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}
