@@ -8,9 +8,31 @@ const _inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const _playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", weight: ["400", "500", "600", "700", "800", "900"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.descubrepy.com.py'),
   title: 'DescubrePY - Tu Guia Digital de Paraguay',
   description: 'Descubre los mejores lugares de Paraguay. Restaurantes, bares, gimnasios, tiendas, eventos y servicios en tu ciudad.',
   generator: 'v0.app',
+  openGraph: {
+    type: 'website',
+    locale: 'es_PY',
+    siteName: 'DescubrePY',
+    title: 'DescubrePY - Tu Guia Digital de Paraguay',
+    description: 'Descubre los mejores lugares de Paraguay. Restaurantes, bares, gimnasios, tiendas, eventos y servicios en tu ciudad.',
+    images: [
+      {
+        url: '/images/logo-v303.png',
+        width: 1200,
+        height: 630,
+        alt: 'DescubrePY',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DescubrePY - Tu Guia Digital de Paraguay',
+    description: 'Descubre los mejores lugares de Paraguay. Restaurantes, bares, gimnasios, tiendas, eventos y servicios en tu ciudad.',
+    images: ['/images/logo-v303.png'],
+  },
 }
 
 export const viewport: Viewport = {
