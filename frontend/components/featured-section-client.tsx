@@ -5,7 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { OpenStatusBadge } from "@/components/open-status-badge"
 import { fetchFeatured, getImageUrl, type BusinessApi } from "@/lib/api"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 
 const PLACEHOLDER_IMG = "/placeholder.svg"
 
@@ -19,7 +21,7 @@ export function FeaturedSectionClient() {
     let cancelled = false
     fetchFeatured()
       .then((list) => {
-        if (!cancelled) setFeatured(Array.isArray(list) ? list : [])
+        if (!cancelled) setFeatured(sortBusinessesByOpenStatus(Array.isArray(list) ? list : []))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -112,6 +114,15 @@ export function FeaturedSectionClient() {
                   <h3 className="mt-2 font-[family-name:var(--font-heading)] text-base font-semibold text-card-foreground group-hover:text-accent transition-colors">
                     {business.name}
                   </h3>
+
+                  <div className="mt-2">
+                    <OpenStatusBadge
+                      openingHours={business.opening_hours}
+                      isOpen={business.is_open}
+                      openLabel={business.open_label}
+                      openDetail={business.open_detail}
+                    />
+                  </div>
 
                   {business.city?.trim() ? (
                     <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">

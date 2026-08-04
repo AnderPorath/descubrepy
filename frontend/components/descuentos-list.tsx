@@ -15,6 +15,7 @@ import {
 } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -90,7 +91,7 @@ export function DescuentosList() {
       category: category.trim() || undefined,
       subcategory: subcategory.trim() || undefined,
     })
-      .then((list) => setItems(Array.isArray(list) ? list : []))
+      .then((list) => setItems(sortBusinessesByOpenStatus(Array.isArray(list) ? list : [])))
       .finally(() => setLoading(false))
   }, [city, category, subcategory, departmentCities])
 

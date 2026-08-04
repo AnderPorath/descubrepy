@@ -8,6 +8,7 @@ const multer = require('multer');
 const db = require('./db');
 const { signToken, verifyToken } = require('./auth');
 const { sendNewBusinessNotification, sendContactNotification, sendTestEmail } = require('./mail');
+const { enrichAndSortBusinesses, getOpenStatus } = require('./opening-hours');
 
 const app = express();
 const PORT = process.env.PORT || 6000;
@@ -313,7 +314,7 @@ app.get('/api/featured', async (req, res) => {
   try {
     const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.opening_hours, COALESCE(b.discount_percent, 0)::int AS discount_percent,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
              c.title AS category, c.slug AS category_slug
       FROM businesses b
@@ -338,7 +339,7 @@ app.get('/api/featured', async (req, res) => {
     }
     sql += ' ORDER BY RANDOM() LIMIT 50';
     const result = await db.query(sql, params);
-    res.json(result.rows);
+    res.json(enrichAndSortBusinesses(result.rows, { preserveOrderWithinGroup: true }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener destacados' });
@@ -350,7 +351,7 @@ app.get('/api/discounts', async (req, res) => {
   try {
     const { city: cityName, cities: citiesParam, category: categorySlug, subcategory: subcategorySlug, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.opening_hours, COALESCE(b.discount_percent, 0)::int AS discount_percent,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
              c.title AS category, c.slug AS category_slug
       FROM businesses b
@@ -375,7 +376,7 @@ app.get('/api/discounts', async (req, res) => {
     }
     sql += ' ORDER BY COALESCE(b.discount_percent, 0) DESC, b.rating DESC LIMIT 100';
     const result = await db.query(sql, params);
-    res.json(result.rows);
+    res.json(enrichAndSortBusinesses(result.rows, { preserveOrderWithinGroup: true }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener descuentos' });
@@ -400,7 +401,7 @@ app.get('/api/businesses', async (req, res) => {
   try {
     const { category: categorySlug, subcategory: subcategorySlug, city: cityName, cities: citiesParam, q } = req.query || {};
     let sql = `
-      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, COALESCE(b.discount_percent, 0)::int AS discount_percent,
+      SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.opening_hours, COALESCE(b.discount_percent, 0)::int AS discount_percent,
              CASE WHEN COALESCE(b.featured, false) THEN 1 ELSE 0 END AS featured,
              c.title AS category, c.slug AS category_slug
       FROM businesses b
@@ -425,7 +426,7 @@ app.get('/api/businesses', async (req, res) => {
     }
     sql += ' ORDER BY COALESCE(b.featured, false) DESC, (b.rating IS NOT NULL) DESC, b.rating DESC';
     const result = await db.query(sql, params);
-    res.json(result.rows);
+    res.json(enrichAndSortBusinesses(result.rows, { preserveOrderWithinGroup: true }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener negocios' });
@@ -467,7 +468,14 @@ app.get('/api/businesses/:slug', async (req, res) => {
       }
     }
     if (!Array.isArray(row.gallery_images)) row.gallery_images = [];
-    res.json(row);
+    const status = getOpenStatus(row.opening_hours);
+    res.json({
+      ...row,
+      featured: row.featured ? 1 : 0,
+      is_open: status.is_open,
+      open_label: status.open_label,
+      open_detail: status.open_detail,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener negocio' });
@@ -785,7 +793,7 @@ app.get('/api/favorites', requireAuth, async (req, res) => {
   try {
     const userId = req.userId;
     const result = await db.query(
-      `SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.featured, COALESCE(b.discount_percent, 0)::int AS discount_percent, c.title AS category, c.slug AS category_slug
+      `SELECT b.id, b.name, b.slug, b.location, b.city, b.rating, b.image_url, b.opening_hours, b.featured, COALESCE(b.discount_percent, 0)::int AS discount_percent, c.title AS category, c.slug AS category_slug
        FROM user_favorites uf
        INNER JOIN businesses b ON uf.business_id = b.id
        LEFT JOIN categories c ON b.category_id = c.id
@@ -795,7 +803,7 @@ app.get('/api/favorites', requireAuth, async (req, res) => {
     );
     const rawRows = result && Array.isArray(result.rows) ? result.rows : [];
     const rows = rawRows.map((r) => ({ ...r, featured: r.featured ? 1 : 0, discount_percent: Number(r.discount_percent || 0) }));
-    res.json(rows);
+    res.json(enrichAndSortBusinesses(rows, { preserveOrderWithinGroup: true }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener favoritos' });

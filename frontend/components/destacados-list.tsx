@@ -13,6 +13,7 @@ import {
 } from "@/lib/api"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 import { Star, Tag, Layers } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import {
@@ -80,7 +81,7 @@ export function DestacadosList() {
       category: category.trim() || undefined,
       subcategory: subcategory.trim() || undefined,
     })
-      .then((list) => setFeatured(Array.isArray(list) ? list : []))
+      .then((list) => setFeatured(sortBusinessesByOpenStatus(Array.isArray(list) ? list : [])))
       .finally(() => setLoading(false))
   }, [city, category, subcategory, departmentCities])
 

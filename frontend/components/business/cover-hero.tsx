@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Star, CheckCircle } from "lucide-react"
+import { OpenStatusBadge } from "@/components/open-status-badge"
 import { getImageUrl, type BusinessDetailApi } from "@/lib/api"
 
 const DEFAULT_COVER = "/placeholder.jpg"
@@ -30,7 +31,7 @@ export function CoverHero({ business }: { business: BusinessDetailApi }) {
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {business.category && (
                   <Badge className="bg-accent text-accent-foreground text-xs font-semibold">
                     {business.category}
@@ -44,6 +45,14 @@ export function CoverHero({ business }: { business: BusinessDetailApi }) {
               <h1 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground md:text-3xl lg:text-4xl">
                 {business.name}
               </h1>
+              <div className="rounded-xl bg-card/90 px-3 py-2 backdrop-blur-sm">
+                <OpenStatusBadge
+                  openingHours={business.opening_hours}
+                  isOpen={business.is_open}
+                  openLabel={business.open_label}
+                  openDetail={business.open_detail}
+                />
+              </div>
               <p className="text-sm text-primary-foreground/80 md:text-base">
                 {business.city}
                 {business.location ? ` · ${business.location}` : ""}

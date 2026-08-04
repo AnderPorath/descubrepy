@@ -7,6 +7,7 @@ import { DepartmentDistrictFilters } from "@/components/department-district-filt
 import type { BusinessApi } from "@/lib/api"
 import { CategoryIcon } from "@/components/category-icon"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 
 type Props = {
   categorySlug: string
@@ -33,9 +34,7 @@ export function SubcategoryBusinesses({ categorySlug, subslug }: Props) {
     const cityFilter = city.trim() || undefined
     fetchBusinesses(categorySlug, subcategorySlug, cityFilter, undefined, departmentCities)
       .then((list) => {
-        const arr = list ?? []
-        const sorted = [...arr].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-        if (!cancelled) setBusinesses(sorted)
+        if (!cancelled) setBusinesses(sortBusinessesByOpenStatus(list ?? []))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)

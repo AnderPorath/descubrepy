@@ -22,6 +22,7 @@ import {
   isDepartmentKey,
 } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 import {
   Select,
   SelectContent,
@@ -247,8 +248,7 @@ function NegociosContent() {
     const c = city.trim() || undefined
     const q = query.trim() || undefined
     fetchBusinesses(cat, sub, c, q, departmentCities).then((data) => {
-      const sorted = [...(data ?? [])].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-      setBusinesses(sorted)
+      setBusinesses(sortBusinessesByOpenStatus(data ?? []))
       setLoading(false)
     })
   }, [category, subcategory, city, query, departmentCities])

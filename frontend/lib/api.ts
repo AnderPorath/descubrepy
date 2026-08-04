@@ -224,6 +224,10 @@ export type BusinessApi = {
   discount_percent?: number
   category: string | null
   category_slug: string | null
+  opening_hours?: string | null
+  is_open?: boolean
+  open_label?: string | null
+  open_detail?: string | null
 }
 
 /** Detalle de negocio (incluye descripción, teléfono, Instagram, horarios, menú, galería, coordenadas) */

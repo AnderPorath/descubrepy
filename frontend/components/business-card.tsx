@@ -6,6 +6,7 @@ import Image from "next/image"
 import { MapPin, Star } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { OpenStatusBadge } from "@/components/open-status-badge"
 import { getImageUrl, type BusinessApi } from "@/lib/api"
 
 const DEFAULT_IMAGE = "/placeholder.jpg"
@@ -68,6 +69,14 @@ export function BusinessCard({ business, onRedeemClick }: BusinessCardProps) {
               </div>
             ) : null}
           </div>
+
+          <OpenStatusBadge
+            openingHours={business.opening_hours}
+            isOpen={business.is_open}
+            openLabel={business.open_label}
+            openDetail={business.open_detail}
+          />
+
           {locationText ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 shrink-0" />

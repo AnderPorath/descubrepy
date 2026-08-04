@@ -3,38 +3,18 @@
 import dynamic from "next/dynamic"
 import { Clock, MapPin, Phone } from "lucide-react"
 import type { BusinessDetailApi } from "@/lib/api"
+import { OpenStatusBadge } from "@/components/open-status-badge"
+import { getWeekScheduleRows } from "@/lib/opening-hours"
 
 const BusinessLocationMap = dynamic(
   () => import("@/components/business/business-location-map").then((m) => ({ default: m.BusinessLocationMap })),
   { ssr: false }
 )
 
-const DAY_ORDER = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"] as const
-
-/** Parsea "Lunes: 09:00-18:00" o "Lunes: Cerrado" y devuelve lista ordenada Lunes–Domingo */
-function parseOpeningHours(text: string): { day: string; hours: string; closed: boolean }[] {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean)
-  const byDay: Record<string, { hours: string; closed: boolean }> = {}
-  for (const line of lines) {
-    const match = line.match(/^\s*(.+?)\s*:\s*(.+)$/)
-    if (!match) continue
-    const day = match[1].trim()
-    const value = match[2].trim()
-    const closed = /cerrado/i.test(value)
-    byDay[day.toLowerCase()] = { hours: closed ? "Cerrado" : value, closed }
-  }
-  return DAY_ORDER.map((day) => {
-    const found = byDay[day.toLowerCase()]
-    return found
-      ? { day, hours: found.hours, closed: found.closed }
-      : { day, hours: "—", closed: false }
-  })
-}
-
 export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
-  const hasHours = business.opening_hours?.trim()
-  const scheduleRows = hasHours ? parseOpeningHours(business.opening_hours) : []
-  const hasParsedRows = scheduleRows.length > 0 && scheduleRows.some((r) => r.hours !== "—")
+  const hasHours = Boolean(business.opening_hours?.trim())
+  const scheduleRows = hasHours ? getWeekScheduleRows(business.opening_hours) : []
+  const hasParsedRows = scheduleRows.length > 0
 
   return (
     <div className="flex flex-col gap-8">
@@ -53,13 +33,22 @@ export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
         <h2 className="text-lg font-bold text-foreground">Horario de atención</h2>
         {hasHours ? (
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-            <div className="flex items-center gap-3 border-b border-border bg-muted/40 px-4 py-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Clock className="h-5 w-5 text-primary" />
+            <div className="flex flex-col gap-3 border-b border-border bg-muted/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Estado actual</p>
+                  <p className="text-xs text-muted-foreground">Actualizado según horario del local</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Horario de atención</p>
-              </div>
+              <OpenStatusBadge
+                openingHours={business.opening_hours}
+                isOpen={business.is_open}
+                openLabel={business.open_label}
+                openDetail={business.open_detail}
+              />
             </div>
             {hasParsedRows ? (
               <ul className="divide-y divide-border">
@@ -73,7 +62,7 @@ export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
                       className={
                         row.closed
                           ? "rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
-                          : "text-sm text-muted-foreground tabular-nums"
+                          : "text-right text-sm text-muted-foreground tabular-nums"
                       }
                     >
                       {row.hours}

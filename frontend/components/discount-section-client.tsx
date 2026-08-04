@@ -5,7 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { Tag, MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { OpenStatusBadge } from "@/components/open-status-badge"
 import { fetchDiscounts, getImageUrl, type BusinessApi } from "@/lib/api"
+import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
 import {
   Dialog,
   DialogContent,
@@ -28,7 +30,7 @@ export function DiscountSectionClient() {
     let cancelled = false
     fetchDiscounts()
       .then((list) => {
-        if (!cancelled) setItems(Array.isArray(list) ? list : [])
+        if (!cancelled) setItems(sortBusinessesByOpenStatus(Array.isArray(list) ? list : []))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -113,6 +115,14 @@ export function DiscountSectionClient() {
                     <h3 className="mt-2 font-[family-name:var(--font-heading)] text-base font-semibold text-card-foreground transition-colors group-hover:text-emerald-600">
                       {business.name}
                     </h3>
+                    <div className="mt-2">
+                      <OpenStatusBadge
+                        openingHours={business.opening_hours}
+                        isOpen={business.is_open}
+                        openLabel={business.open_label}
+                        openDetail={business.open_detail}
+                      />
+                    </div>
                     {business.city?.trim() ? (
                       <div className="mt-2 flex items-center gap-1.5 text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5 shrink-0" />
