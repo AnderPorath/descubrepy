@@ -17,7 +17,7 @@ import { fetchStats } from "@/lib/api"
 import { canonicalizeDistrictName } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 
-const HERO_BG = "/images/hero-inicio-v7.jpg"
+const HERO_BG = "/images/hero-inicio-v8.jpg"
 
 const QUICK_CATEGORIES_LEFT = [
   { label: "RESTAURANTES", href: "/categorias/gastronomia?from=inicio", icon: UtensilsCrossed },
