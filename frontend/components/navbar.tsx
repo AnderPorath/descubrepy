@@ -3,10 +3,11 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Menu, X, LogOut, Building2, Heart, Users } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthModal } from "@/components/auth-modal"
+import { UserMenu } from "@/components/user-menu"
 
 const navLinks = [
   { label: "Inicio", href: "/" },
@@ -21,7 +22,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<"login" | "register">("login")
-  const { user, logout, isLoading } = useAuth()
+  const { user, isLoading } = useAuth()
 
   const openLogin = () => {
     setAuthMode("login")
@@ -36,7 +37,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-white">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-8">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex shrink-0 items-center">
           <Image
@@ -61,80 +62,49 @@ export function Navbar() {
               </Link>
             </li>
           ))}
-          {user && user.role === "user" && (
-            <li>
-              <Link
-                href="/favoritos"
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <Heart className="h-4 w-4" />
-                Favoritos
-              </Link>
-            </li>
-          )}
-          {user?.role === "admin" && (
-            <>
-              <li>
-                <Link
-                  href="/clientes"
-                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Users className="h-4 w-4" />
-                  Clientes
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/registrar-empresa"
-                  className="flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/90"
-                >
-                  <Building2 className="h-4 w-4" />
-                  Registrar empresa
-                </Link>
-              </li>
-            </>
-          )}
         </ul>
 
-        {/* Desktop CTA buttons */}
+        {/* Desktop right side */}
         <div className="hidden items-center gap-3 lg:flex">
-          {!isLoading && (
-            user ? (
-              <>
-                <Link href="/perfil" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                  {user.name}
-                </Link>
-                <Button variant="ghost" size="sm" className="cursor-pointer gap-1.5 text-sm text-muted-foreground hover:text-foreground" onClick={() => logout()}>
-                  <LogOut className="h-4 w-4" />
-                  Cerrar sesion
-                </Button>
-              </>
+          {!isLoading &&
+            (user ? (
+              <UserMenu />
             ) : (
               <>
-                <Button variant="ghost" className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground" onClick={openLogin}>
+                <Button
+                  variant="ghost"
+                  className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground"
+                  onClick={openLogin}
+                >
                   Iniciar sesion
                 </Button>
-                <Button className="cursor-pointer rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90" onClick={openRegister}>
+                <Button
+                  className="cursor-pointer rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  onClick={openRegister}
+                >
                   Registrarse
                 </Button>
               </>
-            )
-          )}
+            ))}
         </div>
-        <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode={authMode} />
 
-        {/* Mobile menu toggle */}
-        <button
-          type="button"
-          className="text-foreground lg:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile: user menu + hamburger */}
+        <div className="flex items-center gap-1.5 lg:hidden">
+          {!isLoading && user ? <UserMenu compact /> : null}
+          <button
+            type="button"
+            className="rounded-lg p-1.5 text-foreground transition hover:bg-neutral-50"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </nav>
 
-      {/* Mobile dropdown */}
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} defaultMode={authMode} />
+
+      {/* Mobile dropdown (solo navegación + auth si no hay sesión) */}
       {mobileOpen && (
         <div className="border-t border-border bg-background px-4 pb-4 lg:hidden">
           <ul className="flex flex-col gap-3 py-4">
@@ -149,67 +119,24 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
-            {user && user.role === "user" && (
-              <li>
-                <Link
-                  href="/favoritos"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Heart className="h-4 w-4" />
-                  Favoritos
-                </Link>
-              </li>
-            )}
-            {user?.role === "admin" && (
-              <>
-                <li>
-                  <Link
-                    href="/clientes"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    <Users className="h-4 w-4" />
-                    Clientes
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/registrar-empresa"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/90"
-                  >
-                    <Building2 className="h-4 w-4" />
-                    Registrar empresa
-                  </Link>
-                </li>
-              </>
-            )}
           </ul>
-          <div className="flex flex-col gap-2">
-            {!isLoading && (
-              user ? (
-                <>
-                  <Link href="/perfil" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                    {user.name}
-                  </Link>
-                  <Button variant="ghost" className="w-full cursor-pointer gap-1.5 text-sm text-muted-foreground hover:text-foreground" onClick={() => logout()}>
-                    <LogOut className="h-4 w-4" />
-                    Cerrar sesion
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" className="w-full cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground" onClick={openLogin}>
-                    Iniciar sesion
-                  </Button>
-                  <Button className="w-full cursor-pointer rounded-lg bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90" onClick={openRegister}>
-                    Registrarse
-                  </Button>
-                </>
-              )
-            )}
-          </div>
+          {!isLoading && !user ? (
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="ghost"
+                className="w-full cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground"
+                onClick={openLogin}
+              >
+                Iniciar sesion
+              </Button>
+              <Button
+                className="w-full cursor-pointer rounded-lg bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                onClick={openRegister}
+              >
+                Registrarse
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </header>
