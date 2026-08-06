@@ -6,8 +6,10 @@ import {
   ChevronDown,
   Heart,
   LogOut,
+  Store,
   UserRound,
   Users,
+  Wallet,
 } from "lucide-react"
 import { useAuth, type User } from "@/contexts/auth-context"
 import {
@@ -130,6 +132,15 @@ export function UserMenu({ compact = false, onNavigate }: UserMenuProps) {
               asChild
               className="cursor-pointer rounded-xl px-3 py-2.5 text-sm text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900"
             >
+              <Link href="/negocios" onClick={onNavigate}>
+                <Store className="h-4 w-4 text-neutral-400" />
+                Mis empresas
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="cursor-pointer rounded-xl px-3 py-2.5 text-sm text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900"
+            >
               <Link href="/clientes" onClick={onNavigate}>
                 <Users className="h-4 w-4 text-neutral-400" />
                 Clientes
@@ -142,6 +153,15 @@ export function UserMenu({ compact = false, onNavigate }: UserMenuProps) {
               <Link href="/registrar-empresa" onClick={onNavigate}>
                 <Building2 className="h-4 w-4 text-neutral-400" />
                 Registrar empresa
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="cursor-pointer rounded-xl px-3 py-2.5 text-sm text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900"
+            >
+              <Link href="/pagos" onClick={onNavigate}>
+                <Wallet className="h-4 w-4 text-neutral-400" />
+                Pagos
               </Link>
             </DropdownMenuItem>
           </>

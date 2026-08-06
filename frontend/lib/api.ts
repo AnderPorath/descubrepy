@@ -501,3 +501,138 @@ export async function deleteClient(id: number, token: string): Promise<{ error?:
   if (!res.ok) return { error: data.error || 'Error al eliminar' }
   return {}
 }
+
+// --- Admin: Pagos ---
+export type PaymentMonthStatus = 'pagado' | 'pendiente' | 'vencido' | 'no_corresponde'
+
+export type PaymentMonthCell = {
+  month: number
+  status: PaymentMonthStatus
+  stored_status?: string
+  amount: number
+  payment_date: string | null
+  payment_method: string | null
+  notes: string | null
+  id: number | null
+}
+
+export type PaymentBusinessRow = {
+  id: number
+  name: string
+  slug: string
+  city: string
+  featured: number
+  monthly_amount: number
+  plan: string
+  created_at: string
+  category: string | null
+  category_slug: string | null
+  months: PaymentMonthCell[]
+}
+
+export type PaymentsDashboard = {
+  year: number
+  now: { year: number; month: number; day: number }
+  stats: {
+    total_businesses: number
+    paid_this_month: number
+    pending: number
+    overdue: number
+    expected_income: number
+    received_income: number
+    missing_income: number
+  }
+  businesses: PaymentBusinessRow[]
+}
+
+export type PaymentHistoryItem = {
+  id: number
+  business_id: number
+  admin_user_id: number | null
+  admin_name: string | null
+  action: string
+  details: string | null
+  created_at: string
+}
+
+export async function fetchAdminPayments(token: string, year: number): Promise<PaymentsDashboard> {
+  const res = await fetch(`${API_URL}/api/admin/payments?year=${encodeURIComponent(String(year))}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('Error al cargar pagos')
+  return res.json()
+}
+
+export async function updateBusinessMonthlyAmount(
+  businessId: number,
+  payload: { monthly_amount: number; plan?: string },
+  token: string
+): Promise<{ error?: string }> {
+  const res = await fetch(`${API_URL}/api/admin/payments/business/${businessId}/amount`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) return { error: data.error || 'Error al actualizar monto' }
+  return {}
+}
+
+export async function upsertPaymentMonth(
+  payload: {
+    business_id: number
+    year: number
+    month: number
+    amount: number
+    status: PaymentMonthStatus
+    payment_date?: string | null
+    payment_method?: string | null
+    notes?: string | null
+  },
+  token: string
+): Promise<{ error?: string }> {
+  const res = await fetch(`${API_URL}/api/admin/payments/month`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) return { error: data.error || 'Error al guardar mes' }
+  return {}
+}
+
+export async function markPaymentPaid(
+  payload: { business_id: number; year: number; month?: number },
+  token: string
+): Promise<{ error?: string }> {
+  const res = await fetch(`${API_URL}/api/admin/payments/mark-paid`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) return { error: data.error || 'Error al marcar pagado' }
+  return {}
+}
+
+export async function fetchPaymentHistory(
+  businessId: number,
+  token: string
+): Promise<PaymentHistoryItem[]> {
+  const res = await fetch(`${API_URL}/api/admin/payments/business/${businessId}/history`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) return []
+  return res.json()
+}
