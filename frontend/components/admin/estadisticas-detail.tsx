@@ -11,7 +11,6 @@ import {
   Phone,
   Share2,
   Ticket,
-  CheckCircle2,
 } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import { Input } from "@/components/ui/input"
@@ -339,22 +338,9 @@ export function EstadisticasDetail({
         />
         <MetricCard
           icon={Ticket}
-          label="Cupones reclamados"
+          label="Cupones canjeados"
           value={totals.coupon_claims}
           accent="bg-amber-50 text-amber-600"
-        />
-        <MetricCard
-          icon={CheckCircle2}
-          label="Cupones utilizados"
-          value={totals.coupon_used}
-          accent="bg-lime-50 text-lime-700"
-        />
-        <MetricCard
-          icon={Ticket}
-          label="Tasa de conversión"
-          value={totals.conversion_rate}
-          suffix="%"
-          accent="bg-orange-50 text-orange-600"
         />
       </div>
 

@@ -657,7 +657,6 @@ export type AnalyticsSummary = {
   discount_businesses: number
   profile_views: number
   coupon_claims: number
-  coupon_used: number
   whatsapp_clicks: number
   phone_clicks: number
   instagram_clicks: number
@@ -684,8 +683,6 @@ export type AnalyticsBusinessRow = {
   instagram_clicks: number
   share_clicks: number
   coupon_claims: number
-  coupon_used: number
-  conversion_rate: number
 }
 
 export type AnalyticsTopItem = {
@@ -744,7 +741,6 @@ export async function fetchAnalyticsTops(
     most_viewed: AnalyticsTopItem[]
     most_whatsapp: AnalyticsTopItem[]
     most_coupon_claims: AnalyticsTopItem[]
-    most_coupon_used: AnalyticsTopItem[]
     most_shared: AnalyticsTopItem[]
     most_instagram: AnalyticsTopItem[]
   }
@@ -772,8 +768,6 @@ export async function fetchAnalyticsBusinessDetail(
     instagram_clicks: number
     share_clicks: number
     coupon_claims: number
-    coupon_used: number
-    conversion_rate: number
   }
   monthly: Array<{
     month: string
@@ -783,7 +777,6 @@ export async function fetchAnalyticsBusinessDetail(
     instagram_clicks: number
     share_clicks: number
     coupon_claims: number
-    coupon_used: number
   }>
 }> {
   const res = await fetch(

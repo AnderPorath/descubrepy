@@ -175,8 +175,7 @@ CREATE TABLE business_events (
       'phone_click',
       'instagram_click',
       'share_click',
-      'coupon_claim',
-      'coupon_used'
+      'coupon_claim'
     )),
   session_id VARCHAR(64),
   user_ip VARCHAR(64),

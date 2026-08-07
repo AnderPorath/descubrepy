@@ -164,7 +164,6 @@ export function EstadisticasAdmin({ token }: { token: string }) {
     most_viewed: AnalyticsTopItem[]
     most_whatsapp: AnalyticsTopItem[]
     most_coupon_claims: AnalyticsTopItem[]
-    most_coupon_used: AnalyticsTopItem[]
     most_shared: AnalyticsTopItem[]
     most_instagram: AnalyticsTopItem[]
   } | null>(null)
@@ -503,8 +502,6 @@ export function EstadisticasAdmin({ token }: { token: string }) {
                     <th className="px-3 py-3 font-medium text-right">IG</th>
                     <th className="px-3 py-3 font-medium text-right">Share</th>
                     <th className="px-3 py-3 font-medium text-right">Cupones</th>
-                    <th className="px-3 py-3 font-medium text-right">Usados</th>
-                    <th className="px-3 py-3 font-medium text-right">Conv.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -580,14 +577,8 @@ export function EstadisticasAdmin({ token }: { token: string }) {
                         <td className="px-3 py-2.5 text-right tabular-nums">
                           {fmt(b.share_clicks)}
                         </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">
+                        <td className="px-3 py-2.5 text-right font-medium tabular-nums">
                           {fmt(b.coupon_claims)}
-                        </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">
-                          {fmt(b.coupon_used)}
-                        </td>
-                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-neutral-900">
-                          {b.conversion_rate}%
                         </td>
                       </tr>
                     )
@@ -595,7 +586,7 @@ export function EstadisticasAdmin({ token }: { token: string }) {
                   {filtered.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={13}
+                        colSpan={11}
                         className="px-3 py-10 text-center text-neutral-400"
                       >
                         No hay negocios con estos filtros
@@ -615,8 +606,7 @@ export function EstadisticasAdmin({ token }: { token: string }) {
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <TopList title="Más visitados" items={tops.most_viewed} />
                 <TopList title="Más WhatsApp" items={tops.most_whatsapp} />
-                <TopList title="Más cupones reclamados" items={tops.most_coupon_claims} />
-                <TopList title="Más cupones utilizados" items={tops.most_coupon_used} />
+                <TopList title="Más cupones canjeados" items={tops.most_coupon_claims} />
                 <TopList title="Más compartidos" items={tops.most_shared} />
                 <TopList title="Más Instagram" items={tops.most_instagram} />
               </div>

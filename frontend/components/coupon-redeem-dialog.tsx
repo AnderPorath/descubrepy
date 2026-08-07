@@ -47,15 +47,6 @@ export function CouponRedeemDialog({
     })
   }, [open, businessId, businessSlug])
 
-  const markUsed = () => {
-    trackBusinessEvent({
-      businessId,
-      slug: businessSlug,
-      eventType: "coupon_used",
-    })
-    onOpenChange(false)
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -85,9 +76,9 @@ export function CouponRedeemDialog({
           <Button
             type="button"
             className="mt-4 w-full bg-emerald-600 text-white hover:bg-emerald-700"
-            onClick={markUsed}
+            onClick={() => onOpenChange(false)}
           >
-            Ya presenté el cupón
+            Listo
           </Button>
         </div>
       </DialogContent>

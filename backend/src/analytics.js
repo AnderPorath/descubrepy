@@ -10,7 +10,6 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
     'instagram_click',
     'share_click',
     'coupon_claim',
-    'coupon_used',
   ])
 
   const VIEW_DEDUPE_MINUTES = 30
@@ -153,7 +152,6 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           SELECT
             COUNT(*) FILTER (WHERE event_type = 'profile_view')::int AS profile_views,
             COUNT(*) FILTER (WHERE event_type = 'coupon_claim')::int AS coupon_claims,
-            COUNT(*) FILTER (WHERE event_type = 'coupon_used')::int AS coupon_used,
             COUNT(*) FILTER (WHERE event_type = 'whatsapp_click')::int AS whatsapp_clicks,
             COUNT(*) FILTER (WHERE event_type = 'phone_click')::int AS phone_clicks,
             COUNT(*) FILTER (WHERE event_type = 'instagram_click')::int AS instagram_clicks,
@@ -198,8 +196,7 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           COALESCE(e.phone_clicks, 0)::int AS phone_clicks,
           COALESCE(e.instagram_clicks, 0)::int AS instagram_clicks,
           COALESCE(e.share_clicks, 0)::int AS share_clicks,
-          COALESCE(e.coupon_claims, 0)::int AS coupon_claims,
-          COALESCE(e.coupon_used, 0)::int AS coupon_used
+          COALESCE(e.coupon_claims, 0)::int AS coupon_claims
         FROM businesses b
         LEFT JOIN categories c ON b.category_id = c.id
         LEFT JOIN (
@@ -210,8 +207,7 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
             COUNT(*) FILTER (WHERE event_type = 'phone_click') AS phone_clicks,
             COUNT(*) FILTER (WHERE event_type = 'instagram_click') AS instagram_clicks,
             COUNT(*) FILTER (WHERE event_type = 'share_click') AS share_clicks,
-            COUNT(*) FILTER (WHERE event_type = 'coupon_claim') AS coupon_claims,
-            COUNT(*) FILTER (WHERE event_type = 'coupon_used') AS coupon_used
+            COUNT(*) FILTER (WHERE event_type = 'coupon_claim') AS coupon_claims
           FROM business_events
           WHERE created_at >= $1 AND created_at <= $2
           GROUP BY business_id
@@ -228,19 +224,12 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           instagram: 'instagram_clicks',
           shares: 'share_clicks',
           phone: 'phone_clicks',
-          used: 'coupon_used',
         }[sort] || 'profile_views'
 
-      const rows = (result.rows || []).map((r) => {
-        const claims = Number(r.coupon_claims || 0)
-        const used = Number(r.coupon_used || 0)
-        const conversion = claims > 0 ? Math.round((used / claims) * 1000) / 10 : 0
-        return {
-          ...r,
-          featured: r.featured ? 1 : 0,
-          conversion_rate: conversion,
-        }
-      })
+      const rows = (result.rows || []).map((r) => ({
+        ...r,
+        featured: r.featured ? 1 : 0,
+      }))
 
       rows.sort((a, b) => {
         const diff = Number(b[sortKey] || 0) - Number(a[sortKey] || 0)
@@ -276,11 +265,10 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
         return r.rows || []
       }
 
-      const [views, whatsapp, claims, used, shares, instagram] = await Promise.all([
+      const [views, whatsapp, claims, shares, instagram] = await Promise.all([
         top('profile_view'),
         top('whatsapp_click'),
         top('coupon_claim'),
-        top('coupon_used'),
         top('share_click'),
         top('instagram_click'),
       ])
@@ -293,7 +281,6 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           most_viewed: views,
           most_whatsapp: whatsapp,
           most_coupon_claims: claims,
-          most_coupon_used: used,
           most_shared: shares,
           most_instagram: instagram,
         },
@@ -337,8 +324,7 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           COUNT(*) FILTER (WHERE event_type = 'phone_click')::int AS phone_clicks,
           COUNT(*) FILTER (WHERE event_type = 'instagram_click')::int AS instagram_clicks,
           COUNT(*) FILTER (WHERE event_type = 'share_click')::int AS share_clicks,
-          COUNT(*) FILTER (WHERE event_type = 'coupon_claim')::int AS coupon_claims,
-          COUNT(*) FILTER (WHERE event_type = 'coupon_used')::int AS coupon_used
+          COUNT(*) FILTER (WHERE event_type = 'coupon_claim')::int AS coupon_claims
         FROM business_events
         WHERE business_id = $1 AND created_at >= $2 AND created_at <= $3
         `,
@@ -354,8 +340,7 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           COUNT(*) FILTER (WHERE event_type = 'phone_click')::int AS phone_clicks,
           COUNT(*) FILTER (WHERE event_type = 'instagram_click')::int AS instagram_clicks,
           COUNT(*) FILTER (WHERE event_type = 'share_click')::int AS share_clicks,
-          COUNT(*) FILTER (WHERE event_type = 'coupon_claim')::int AS coupon_claims,
-          COUNT(*) FILTER (WHERE event_type = 'coupon_used')::int AS coupon_used
+          COUNT(*) FILTER (WHERE event_type = 'coupon_claim')::int AS coupon_claims
         FROM business_events
         WHERE business_id = $1 AND created_at >= $2 AND created_at <= $3
         GROUP BY date_trunc('month', created_at)
@@ -365,8 +350,6 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
       )
 
       const t = totals.rows?.[0] || {}
-      const claims = Number(t.coupon_claims || 0)
-      const used = Number(t.coupon_used || 0)
 
       res.json({
         period,
@@ -376,10 +359,7 @@ function registerAnalyticsRoutes(app, { db, requireAdmin }) {
           ...business,
           featured: business.featured ? 1 : 0,
         },
-        totals: {
-          ...t,
-          conversion_rate: claims > 0 ? Math.round((used / claims) * 1000) / 10 : 0,
-        },
+        totals: t,
         monthly: monthly.rows || [],
       })
     } catch (err) {

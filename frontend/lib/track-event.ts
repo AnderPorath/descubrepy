@@ -7,7 +7,6 @@ export type AnalyticsEventType =
   | "instagram_click"
   | "share_click"
   | "coupon_claim"
-  | "coupon_used"
 
 const SESSION_KEY = "descubrepy_sid"
 
