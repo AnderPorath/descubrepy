@@ -187,6 +187,9 @@ export function EstadisticasAdmin({ token }: { token: string }) {
       setBusinesses(b.businesses || [])
       setTops(t.tops)
     } catch (e) {
+      setSummary(null)
+      setBusinesses([])
+      setTops(null)
       setError(e instanceof Error ? e.message : "Error al cargar estadísticas")
     } finally {
       setLoading(false)

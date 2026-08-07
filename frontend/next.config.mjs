@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+const backendBase = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.BACKEND_URL ||
+  'http://127.0.0.1:6000'
+).replace(/\/$/, '')
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -14,11 +20,11 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:6000/api/:path*',
+        destination: `${backendBase}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://127.0.0.1:6000/uploads/:path*',
+        destination: `${backendBase}/uploads/:path*`,
       },
     ]
   },
