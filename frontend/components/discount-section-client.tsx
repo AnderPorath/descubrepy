@@ -6,15 +6,9 @@ import Link from "next/link"
 import { Tag, MapPin, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OpenStatusBadge } from "@/components/open-status-badge"
+import { CouponRedeemDialog } from "@/components/coupon-redeem-dialog"
 import { fetchDiscounts, getImageUrl, type BusinessApi } from "@/lib/api"
 import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 
 const PLACEHOLDER_IMG = "/placeholder.svg"
 
@@ -152,35 +146,12 @@ export function DiscountSectionClient() {
           )}
         </div>
       </div>
-      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cupón de descuento</DialogTitle>
-            <DialogDescription>
-              {couponBusiness
-                ? `Mostrá este cupón en ${couponBusiness.name}.`
-                : "Mostrá este cupón en el local."}
-            </DialogDescription>
-          </DialogHeader>
-          {couponBusiness ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
-              <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
-                <Image
-                  src="/images/cupon-descuento.png"
-                  alt="Cupón de descuento"
-                  width={1024}
-                  height={1024}
-                  className="h-auto w-full object-contain"
-                  priority
-                />
-              </div>
-              <p className="mt-3 text-sm text-emerald-800">
-                Presentando ese cupón obtendrá el descuento.
-              </p>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <CouponRedeemDialog
+        open={couponOpen}
+        onOpenChange={setCouponOpen}
+        businessName={couponBusiness?.name}
+        couponUrl={couponBusiness?.discount_coupon_url}
+      />
     </section>
   )
 }

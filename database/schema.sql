@@ -71,6 +71,7 @@ CREATE TABLE businesses (
   rating NUMERIC(2, 1),
   featured BOOLEAN NOT NULL DEFAULT FALSE,
   discount_percent INTEGER NOT NULL DEFAULT 0,
+  discount_coupon_url VARCHAR(500),
   monthly_amount INTEGER NOT NULL DEFAULT 0,
   plan VARCHAR(80) NOT NULL DEFAULT 'Estándar',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

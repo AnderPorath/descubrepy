@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -13,17 +12,11 @@ import { BusinessInfo } from "@/components/business/business-info"
 import { PhotoGallery } from "@/components/business/photo-gallery"
 import { MenuSection } from "@/components/business/menu-section"
 import { QuickActions } from "@/components/business/quick-actions"
+import { CouponRedeemDialog } from "@/components/coupon-redeem-dialog"
 import { useAuth } from "@/contexts/auth-context"
 import { deleteBusiness, checkIsFavorite, addFavorite, removeFavorite } from "@/lib/api"
 import type { BusinessDetailApi, BusinessApi } from "@/lib/api"
 import { Pencil, Trash2, Heart } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 
 const getApiBase = () => (typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : "")
 
@@ -281,31 +274,12 @@ export function NegocioDetailContent() {
         </Button>
       </div>
 
-      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cupón de descuento</DialogTitle>
-            <DialogDescription>
-              Mostrá este cupón en {business.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
-            <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
-              <Image
-                src="/images/cupon-descuento.png"
-                alt="Cupón de descuento"
-                width={1024}
-                height={1024}
-                className="h-auto w-full object-contain"
-                priority
-              />
-            </div>
-            <p className="mt-3 text-sm text-emerald-800">
-              Presentando ese cupón obtendrá el descuento.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CouponRedeemDialog
+        open={couponOpen}
+        onOpenChange={setCouponOpen}
+        businessName={business.name}
+        couponUrl={business.discount_coupon_url}
+      />
 
       <Footer />
     </div>

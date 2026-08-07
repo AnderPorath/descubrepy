@@ -14,6 +14,11 @@ export function getImageUrl(url: string | null | undefined): string {
   return u;
 }
 
+/** Imagen del cupón del local, o el cupón genérico de DescubrePY. */
+export function getCouponImageUrl(url: string | null | undefined): string {
+  return getImageUrl(url) || '/images/cupon-descuento.png'
+}
+
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
   try {
     const res = await fetch(url, FETCH_OPTIONS);
@@ -222,6 +227,7 @@ export type BusinessApi = {
   image_url: string | null
   featured: number
   discount_percent?: number
+  discount_coupon_url?: string | null
   category: string | null
   category_slug: string | null
   opening_hours?: string | null
@@ -296,6 +302,7 @@ export type CreateBusinessPayload = {
   gallery_images?: string[]
   featured?: boolean
   discount_percent?: number
+  discount_coupon_url?: string | null
 }
 
 export async function createBusiness(
@@ -337,6 +344,7 @@ export type UpdateBusinessPayload = {
   gallery_images?: string[]
   featured?: boolean
   discount_percent?: number
+  discount_coupon_url?: string | null
 }
 
 export async function updateBusiness(

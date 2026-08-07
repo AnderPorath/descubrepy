@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Tag, Layers } from "lucide-react"
 import { BusinessCard } from "@/components/business-card"
 import {
@@ -16,6 +15,7 @@ import {
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { getDistrictsForDepartment } from "@/lib/paraguay-departments"
 import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
+import { CouponRedeemDialog } from "@/components/coupon-redeem-dialog"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -24,13 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 
 const FALLBACK_CATEGORIES: CategoryApi[] = [
   { id: 1, slug: "gastronomia", title: "Gastronomía", description: null, icon_name: "UtensilsCross", business_count: 0 },
@@ -208,35 +201,12 @@ export function DescuentosList() {
         </>
       )}
 
-      <Dialog open={couponOpen} onOpenChange={setCouponOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cupón de descuento</DialogTitle>
-            <DialogDescription>
-              {couponBusiness
-                ? `Mostrá este cupón en ${couponBusiness.name}.`
-                : "Mostrá este cupón en el local."}
-            </DialogDescription>
-          </DialogHeader>
-          {couponBusiness ? (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
-              <div className="overflow-hidden rounded-lg border border-emerald-200 bg-white">
-                <Image
-                  src="/images/cupon-descuento.png"
-                  alt="Cupón de descuento"
-                  width={1024}
-                  height={1024}
-                  className="h-auto w-full object-contain"
-                  priority
-                />
-              </div>
-              <p className="mt-3 text-sm text-emerald-800">
-                Presentando ese cupón obtendrá el descuento.
-              </p>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <CouponRedeemDialog
+        open={couponOpen}
+        onOpenChange={setCouponOpen}
+        businessName={couponBusiness?.name}
+        couponUrl={couponBusiness?.discount_coupon_url}
+      />
     </section>
   )
 }

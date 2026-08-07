@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/auth-context"
-import { fetchSubcategories, createBusiness, updateBusiness } from "@/lib/api"
+import { fetchSubcategories, createBusiness, updateBusiness, getImageUrl } from "@/lib/api"
 import type { BusinessDetailApi } from "@/lib/api"
 import { Upload, X, Loader2, CheckCircle2, Clock, MapPin, Phone } from "lucide-react"
 import {
@@ -292,6 +292,8 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
   const [mapLng, setMapLng] = useState<number | null>(null)
   const [featured, setFeatured] = useState(false)
   const [discountPercent, setDiscountPercent] = useState(0)
+  const [couponUrl, setCouponUrl] = useState("")
+  const [couponPreview, setCouponPreview] = useState<string | null>(null)
   const departmentGroups = useMemo(() => getDepartmentsGrouped(), [])
   const districtOptions = useMemo(
     () => (departmentKey ? getDistrictsForDepartment(departmentKey) : []),
@@ -321,6 +323,8 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     setLocationText(initialData.location ?? "")
     setFeatured(Boolean(initialData.featured))
     setDiscountPercent(Number(initialData.discount_percent || 0))
+    setCouponUrl(initialData.discount_coupon_url ?? "")
+    setCouponPreview(getImageUrl(initialData.discount_coupon_url) || null)
     setCoverUrl(initialData.image_url ?? "")
     setCoverPreview(initialData.image_url ?? null)
     setGalleryUrls(initialData.gallery_images ?? [])
@@ -408,6 +412,26 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
     }
   }
 
+  const handleCouponChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file?.type.startsWith("image/")) return
+    setUploading(true)
+    setError(null)
+    const result = await uploadImage(file)
+    setUploading(false)
+    if (result.url) {
+      setCouponUrl(result.url)
+      setCouponPreview(URL.createObjectURL(file))
+    } else {
+      setError(result.error || "No se pudo subir la imagen del cupón.")
+    }
+  }
+
+  const clearCouponImage = () => {
+    setCouponUrl("")
+    setCouponPreview(null)
+  }
+
   const handleGalleryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
@@ -478,6 +502,7 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
       gallery_images: galleryUrls.length ? galleryUrls : undefined,
       featured,
       discount_percent: discountPercent,
+      discount_coupon_url: discountPercent > 0 ? (couponUrl || null) : null,
       ...(locationValue ? { location: locationValue } : {}),
       ...(hasCoordinates ? { latitude: mapLat, longitude: mapLng } : {}),
     }
@@ -951,7 +976,14 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
                 <Label className="text-muted-foreground">Descuento</Label>
                 <select
                   value={discountPercent}
-                  onChange={(e) => setDiscountPercent(Number(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = Number(e.target.value) || 0
+                    setDiscountPercent(value)
+                    if (value <= 0) {
+                      setCouponUrl("")
+                      setCouponPreview(null)
+                    }
+                  }}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   {DISCOUNT_OPTIONS.map((value) => (
@@ -963,6 +995,43 @@ export function RegisterBusinessForm({ initialCategories = [], editSlug, initial
                 <p className="text-xs text-muted-foreground">
                   Elegí el porcentaje en pasos de 5 (5%, 10%, 15%, etc.).
                 </p>
+                {discountPercent > 0 ? (
+                  <div className="mt-1 rounded-xl border border-border bg-background/60 p-3">
+                    <Label className="text-muted-foreground">Imagen del cupón</Label>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Esta imagen aparece cuando el cliente aprieta Canjear. Si no subís una, se usa el cupón genérico.
+                    </p>
+                    {couponPreview ? (
+                      <div className="relative mt-3 overflow-hidden rounded-lg border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={couponPreview}
+                          alt="Vista previa del cupón"
+                          className="max-h-48 w-full object-contain bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={clearCouponImage}
+                          className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80"
+                          aria-label="Quitar cupón"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : null}
+                    <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/40">
+                      <Upload className="h-4 w-4 text-muted-foreground" />
+                      {uploading ? "Subiendo…" : couponPreview ? "Cambiar imagen del cupón" : "Subir imagen del cupón"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={handleCouponChange}
+                      />
+                    </label>
+                  </div>
+                ) : null}
               </div>
               <Button
                 type="submit"
