@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import Image from "next/image"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,16 +11,50 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { getCouponImageUrl } from "@/lib/api"
+import { trackBusinessEvent } from "@/lib/track-event"
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   businessName?: string | null
   couponUrl?: string | null
+  businessId?: number | null
+  businessSlug?: string | null
 }
 
-export function CouponRedeemDialog({ open, onOpenChange, businessName, couponUrl }: Props) {
+export function CouponRedeemDialog({
+  open,
+  onOpenChange,
+  businessName,
+  couponUrl,
+  businessId,
+  businessSlug,
+}: Props) {
   const src = getCouponImageUrl(couponUrl)
+  const claimedRef = useRef(false)
+
+  useEffect(() => {
+    if (!open) {
+      claimedRef.current = false
+      return
+    }
+    if (claimedRef.current) return
+    claimedRef.current = true
+    trackBusinessEvent({
+      businessId,
+      slug: businessSlug,
+      eventType: "coupon_claim",
+    })
+  }, [open, businessId, businessSlug])
+
+  const markUsed = () => {
+    trackBusinessEvent({
+      businessId,
+      slug: businessSlug,
+      eventType: "coupon_used",
+    })
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,6 +82,13 @@ export function CouponRedeemDialog({ open, onOpenChange, businessName, couponUrl
           <p className="mt-3 text-sm text-emerald-800">
             Presentando ese cupón obtendrá el descuento.
           </p>
+          <Button
+            type="button"
+            className="mt-4 w-full bg-emerald-600 text-white hover:bg-emerald-700"
+            onClick={markUsed}
+          >
+            Ya presenté el cupón
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

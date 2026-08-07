@@ -151,6 +151,8 @@ export function DiscountSectionClient() {
         onOpenChange={setCouponOpen}
         businessName={couponBusiness?.name}
         couponUrl={couponBusiness?.discount_coupon_url}
+        businessId={couponBusiness?.id}
+        businessSlug={couponBusiness?.slug}
       />
     </section>
   )

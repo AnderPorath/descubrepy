@@ -10,6 +10,7 @@ const { signToken, verifyToken } = require('./auth');
 const { sendNewBusinessNotification, sendContactNotification, sendTestEmail } = require('./mail');
 const { enrichAndSortBusinesses, getOpenStatus } = require('./opening-hours');
 const { registerPaymentRoutes } = require('./payments');
+const { registerAnalyticsRoutes } = require('./analytics');
 
 const app = express();
 const PORT = process.env.PORT || 6000;
@@ -1150,6 +1151,7 @@ app.delete('/api/users/:id', requireAdmin, async (req, res) => {
 });
 
 registerPaymentRoutes(app, { db, requireAdmin });
+registerAnalyticsRoutes(app, { db, requireAdmin });
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend DescubrePY en http://localhost:${PORT}`);

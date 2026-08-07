@@ -5,6 +5,7 @@ import { Clock, MapPin, Phone } from "lucide-react"
 import type { BusinessDetailApi } from "@/lib/api"
 import { OpenStatusBadge } from "@/components/open-status-badge"
 import { getWeekScheduleRows } from "@/lib/opening-hours"
+import { trackBusinessEvent } from "@/lib/track-event"
 
 const BusinessLocationMap = dynamic(
   () => import("@/components/business/business-location-map").then((m) => ({ default: m.BusinessLocationMap })),
@@ -91,6 +92,13 @@ export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
           <>
           <a
             href={`tel:${business.phone.replace(/\s/g, "")}`}
+            onClick={() =>
+              trackBusinessEvent({
+                businessId: business.id,
+                slug: business.slug,
+                eventType: "phone_click",
+              })
+            }
             className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3.5 hover:border-accent/30 hover:shadow-sm"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary group-hover:bg-accent/10">
@@ -102,6 +110,13 @@ export function BusinessInfo({ business }: { business: BusinessDetailApi }) {
             href={`https://wa.me/595${business.phone.replace(/\D/g, "").slice(-9)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              trackBusinessEvent({
+                businessId: business.id,
+                slug: business.slug,
+                eventType: "whatsapp_click",
+              })
+            }
             className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3.5 hover:border-accent/30 hover:shadow-sm"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary group-hover:bg-accent/10">

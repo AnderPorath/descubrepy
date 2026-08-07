@@ -644,3 +644,152 @@ export async function fetchPaymentHistory(
   if (!res.ok) return []
   return res.json()
 }
+
+// --- Admin: Estadísticas ---
+export type AnalyticsPeriod = 'today' | '7d' | '30d' | '90d' | 'year' | 'custom'
+
+export type AnalyticsSummary = {
+  period: string
+  from: string
+  to: string
+  total_businesses: number
+  featured_businesses: number
+  discount_businesses: number
+  profile_views: number
+  coupon_claims: number
+  coupon_used: number
+  whatsapp_clicks: number
+  phone_clicks: number
+  instagram_clicks: number
+  share_clicks: number
+}
+
+export type AnalyticsBusinessRow = {
+  id: number
+  name: string
+  slug: string
+  city: string
+  image_url: string | null
+  featured: number
+  opening_hours?: string | null
+  discount_percent: number
+  monthly_amount: number
+  plan: string
+  created_at: string
+  category: string | null
+  category_slug: string | null
+  profile_views: number
+  whatsapp_clicks: number
+  phone_clicks: number
+  instagram_clicks: number
+  share_clicks: number
+  coupon_claims: number
+  coupon_used: number
+  conversion_rate: number
+}
+
+export type AnalyticsTopItem = {
+  id: number
+  name: string
+  slug: string
+  image_url: string | null
+  count: number
+}
+
+function analyticsQuery(period: AnalyticsPeriod, from?: string, to?: string) {
+  const params = new URLSearchParams()
+  params.set('period', period)
+  if (period === 'custom') {
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+  }
+  return params.toString()
+}
+
+export async function fetchAnalyticsSummary(
+  token: string,
+  period: AnalyticsPeriod = '30d',
+  from?: string,
+  to?: string
+): Promise<AnalyticsSummary> {
+  const res = await fetch(
+    `${API_URL}/api/admin/analytics/summary?${analyticsQuery(period, from, to)}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+  )
+  if (!res.ok) throw new Error('Error al cargar resumen')
+  return res.json()
+}
+
+export async function fetchAnalyticsBusinesses(
+  token: string,
+  opts: { period?: AnalyticsPeriod; sort?: string; from?: string; to?: string } = {}
+): Promise<{ businesses: AnalyticsBusinessRow[]; period: string }> {
+  const params = new URLSearchParams(analyticsQuery(opts.period || '30d', opts.from, opts.to))
+  if (opts.sort) params.set('sort', opts.sort)
+  const res = await fetch(`${API_URL}/api/admin/analytics/businesses?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('Error al cargar negocios')
+  return res.json()
+}
+
+export async function fetchAnalyticsTops(
+  token: string,
+  period: AnalyticsPeriod = '30d',
+  from?: string,
+  to?: string
+): Promise<{
+  tops: {
+    most_viewed: AnalyticsTopItem[]
+    most_whatsapp: AnalyticsTopItem[]
+    most_coupon_claims: AnalyticsTopItem[]
+    most_coupon_used: AnalyticsTopItem[]
+    most_shared: AnalyticsTopItem[]
+    most_instagram: AnalyticsTopItem[]
+  }
+}> {
+  const res = await fetch(
+    `${API_URL}/api/admin/analytics/tops?${analyticsQuery(period, from, to)}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+  )
+  if (!res.ok) throw new Error('Error al cargar tops')
+  return res.json()
+}
+
+export async function fetchAnalyticsBusinessDetail(
+  slug: string,
+  token: string,
+  period: AnalyticsPeriod = '30d',
+  from?: string,
+  to?: string
+): Promise<{
+  business: AnalyticsBusinessRow & { category: string | null }
+  totals: {
+    profile_views: number
+    whatsapp_clicks: number
+    phone_clicks: number
+    instagram_clicks: number
+    share_clicks: number
+    coupon_claims: number
+    coupon_used: number
+    conversion_rate: number
+  }
+  monthly: Array<{
+    month: string
+    profile_views: number
+    whatsapp_clicks: number
+    phone_clicks: number
+    instagram_clicks: number
+    share_clicks: number
+    coupon_claims: number
+    coupon_used: number
+  }>
+}> {
+  const res = await fetch(
+    `${API_URL}/api/admin/analytics/business/${encodeURIComponent(slug)}?${analyticsQuery(period, from, to)}`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
+  )
+  if (!res.ok) throw new Error('Error al cargar detalle')
+  return res.json()
+}

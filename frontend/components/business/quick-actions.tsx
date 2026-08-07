@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Phone, MessageCircle, Share2, Instagram } from "lucide-react"
 import type { BusinessDetailApi } from "@/lib/api"
+import { trackBusinessEvent } from "@/lib/track-event"
 
 function getWhatsAppNumber(phone: string | null | undefined): string {
   if (!phone?.trim()) return ""
@@ -27,6 +28,10 @@ export function QuickActions({ business }: { business: BusinessDetailApi }) {
   const instagramUrl = getInstagramUrl(business.instagram_url)
   const [sharing, setSharing] = useState(false)
 
+  const track = (eventType: Parameters<typeof trackBusinessEvent>[0]["eventType"]) => {
+    trackBusinessEvent({ businessId: business.id, slug: business.slug, eventType })
+  }
+
   const handleShare = async () => {
     if (sharing) return
     const url = typeof window !== "undefined" ? window.location.href : ""
@@ -38,13 +43,18 @@ export function QuickActions({ business }: { business: BusinessDetailApi }) {
           url,
           text: `${business.name} - DescubrePY`,
         })
+        track("share_click")
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url)
+        track("share_click")
       }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return
       try {
-        if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url)
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url)
+          track("share_click")
+        }
       } catch {
         // ignore
       }
@@ -66,6 +76,7 @@ export function QuickActions({ business }: { business: BusinessDetailApi }) {
               href={`https://wa.me/${waNumber}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => track("whatsapp_click")}
             >
               <MessageCircle className="h-4 w-4" />
               Escribir por WhatsApp
@@ -74,7 +85,10 @@ export function QuickActions({ business }: { business: BusinessDetailApi }) {
         )}
         {phone && (
           <Button variant="outline" className="w-full gap-2" asChild>
-            <a href={`tel:${phone.replace(/\s/g, "")}`}>
+            <a
+              href={`tel:${phone.replace(/\s/g, "")}`}
+              onClick={() => track("phone_click")}
+            >
               <Phone className="h-4 w-4" />
               Llamar
             </a>
@@ -82,7 +96,12 @@ export function QuickActions({ business }: { business: BusinessDetailApi }) {
         )}
         {instagramUrl && (
           <Button variant="outline" className="w-full gap-2" asChild>
-            <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => track("instagram_click")}
+            >
               <Instagram className="h-4 w-4" />
               Instagram
             </a>

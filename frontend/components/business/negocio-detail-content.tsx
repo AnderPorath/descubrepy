@@ -16,6 +16,7 @@ import { CouponRedeemDialog } from "@/components/coupon-redeem-dialog"
 import { useAuth } from "@/contexts/auth-context"
 import { deleteBusiness, checkIsFavorite, addFavorite, removeFavorite } from "@/lib/api"
 import type { BusinessDetailApi, BusinessApi } from "@/lib/api"
+import { trackBusinessEvent } from "@/lib/track-event"
 import { Pencil, Trash2, Heart } from "lucide-react"
 
 const getApiBase = () => (typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : "")
@@ -87,6 +88,13 @@ export function NegocioDetailContent() {
       setBusiness(data)
       if (!data) setNotFound(true)
       setLoading(false)
+      if (data) {
+        trackBusinessEvent({
+          businessId: data.id,
+          slug: data.slug,
+          eventType: "profile_view",
+        })
+      }
       if (data?.category_slug) {
         fetchRelatedFromClient(data.category_slug).then((list) => {
           if (!cancelled) setRelated(list.filter((b) => b.slug !== slug).slice(0, 3))
@@ -279,6 +287,8 @@ export function NegocioDetailContent() {
         onOpenChange={setCouponOpen}
         businessName={business.name}
         couponUrl={business.discount_coupon_url}
+        businessId={business.id}
+        businessSlug={business.slug}
       />
 
       <Footer />

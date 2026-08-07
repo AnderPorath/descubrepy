@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import {
+  BarChart3,
   Building2,
   ChevronDown,
   Heart,
@@ -162,6 +163,15 @@ export function UserMenu({ compact = false, onNavigate }: UserMenuProps) {
               <Link href="/pagos" onClick={onNavigate}>
                 <Wallet className="h-4 w-4 text-neutral-400" />
                 Pagos
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              asChild
+              className="cursor-pointer rounded-xl px-3 py-2.5 text-sm text-neutral-700 focus:bg-neutral-50 focus:text-neutral-900"
+            >
+              <Link href="/estadisticas" onClick={onNavigate}>
+                <BarChart3 className="h-4 w-4 text-neutral-400" />
+                Estadísticas
               </Link>
             </DropdownMenuItem>
           </>
