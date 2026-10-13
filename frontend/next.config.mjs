@@ -1,3 +1,8 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const backendBase = (
   process.env.NEXT_PUBLIC_API_URL ||
@@ -11,6 +16,10 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+  },
+  // Evita que Turbopack tome la raíz del monorepo por el package-lock de arriba
+  turbopack: {
+    root: __dirname,
   },
   experimental: {
     proxyClientMaxBodySize: 10 * 1024 * 1024, // 10 MB
@@ -31,3 +40,4 @@ const nextConfig = {
 }
 
 export default nextConfig
+

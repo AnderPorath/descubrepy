@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { deleteBusiness, checkIsFavorite, addFavorite, removeFavorite } from "@/lib/api"
 import type { BusinessDetailApi, BusinessApi } from "@/lib/api"
 import { trackBusinessEvent } from "@/lib/track-event"
-import { Pencil, Trash2, Heart } from "lucide-react"
+import { Pencil, Trash2, Heart, QrCode } from "lucide-react"
 
 const getApiBase = () => (typeof window !== "undefined" ? (process.env.NEXT_PUBLIC_API_URL ?? "") : "")
 
@@ -180,7 +180,13 @@ export function NegocioDetailContent() {
             <span className="truncate font-medium text-foreground">{business.name}</span>
           </div>
           {isAdmin && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                <Link href={`/negocio/${slug}/qr`}>
+                  <QrCode className="h-3.5 w-3.5" />
+                  QR del local
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" className="gap-1.5" asChild>
                 <Link href={`/negocio/${slug}/editar`}>
                   <Pencil className="h-3.5 w-3.5" />
