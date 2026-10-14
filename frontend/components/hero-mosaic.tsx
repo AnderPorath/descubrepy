@@ -43,8 +43,6 @@ function buildColumns(urls: string[]): string[][] {
 }
 
 function Tile({ src, accent }: { src: string; accent: boolean }) {
-  const [failed, setFailed] = useState(false)
-  if (failed) return null
   return (
     <div className="pb-2.5 sm:pb-3">
       <div
@@ -57,10 +55,9 @@ function Tile({ src, accent }: { src: string; accent: boolean }) {
         <img
           src={src}
           alt=""
-          loading="lazy"
-          decoding="async"
+          loading="eager"
+          decoding="sync"
           draggable={false}
-          onError={() => setFailed(true)}
           className={cn(
             "h-full w-full object-cover",
             accent ? "opacity-95" : "opacity-50 grayscale",
@@ -76,15 +73,32 @@ export function HeroMosaic() {
 
   useEffect(() => {
     let cancelled = false
+    const preloaded: HTMLImageElement[] = []
     fetchFeatured().then((list) => {
       if (cancelled) return
       const found = (Array.isArray(list) ? list : [])
         .map((b) => getImageUrl(b.image_url))
         .filter((u): u is string => Boolean(u))
-      setUrls(Array.from(new Set(found)).slice(0, 30))
+      const unique = Array.from(new Set(found)).slice(0, 30)
+      // Decodifica todo antes de mostrar: si no, las fotos que entran en pantalla
+      // se pintan con un frame de retraso y aparece un destello oscuro.
+      Promise.all(
+        unique.map((src) => {
+          const img = new window.Image()
+          img.src = src
+          preloaded.push(img)
+          return img.decode().then(
+            () => src,
+            () => null,
+          )
+        }),
+      ).then((ok) => {
+        if (!cancelled) setUrls(ok.filter((u): u is string => u !== null))
+      })
     })
     return () => {
       cancelled = true
+      preloaded.length = 0
     }
   }, [])
 
@@ -118,7 +132,7 @@ export function HeroMosaic() {
             return (
               <div key={i} className="w-[84px] shrink-0 sm:w-[104px] lg:w-[120px]">
                 <div
-                  className="flex flex-col will-change-transform"
+                  className="flex flex-col will-change-transform [backface-visibility:hidden] [contain:paint]"
                   style={{
                     animation: `${dir === "up" ? "mosaic-up" : "mosaic-down"} ${duration}s linear infinite`,
                   }}

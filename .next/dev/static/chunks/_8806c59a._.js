@@ -3732,7 +3732,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$motion$2f$di
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/api.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/utils.ts [app-client] (ecmascript)");
 ;
-var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
+var _s = __turbopack_context__.k.signature();
 "use client";
 ;
 ;
@@ -3813,9 +3813,6 @@ function buildColumns(urls) {
     });
 }
 function Tile({ src, accent }) {
-    _s();
-    const [failed, setFailed] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    if (failed) return null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "pb-2.5 sm:pb-3",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3823,35 +3820,34 @@ function Tile({ src, accent }) {
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                 src: src,
                 alt: "",
-                loading: "lazy",
-                decoding: "async",
+                loading: "eager",
+                decoding: "sync",
                 draggable: false,
-                onError: ()=>setFailed(true),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("h-full w-full object-cover", accent ? "opacity-95" : "opacity-50 grayscale")
             }, void 0, false, {
                 fileName: "[project]/components/hero-mosaic.tsx",
-                lineNumber: 57,
+                lineNumber: 55,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/hero-mosaic.tsx",
-            lineNumber: 50,
+            lineNumber: 48,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/hero-mosaic.tsx",
-        lineNumber: 49,
+        lineNumber: 47,
         columnNumber: 5
     }, this);
 }
-_s(Tile, "BFa/7w0IiJnSoWJxZHxuU4kOwF4=");
 _c = Tile;
 function HeroMosaic() {
-    _s1();
+    _s();
     const [urls, setUrls] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "HeroMosaic.useEffect": ()=>{
             let cancelled = false;
+            const preloaded = [];
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["fetchFeatured"])().then({
                 "HeroMosaic.useEffect": (list)=>{
                     if (cancelled) return;
@@ -3860,12 +3856,33 @@ function HeroMosaic() {
                     }["HeroMosaic.useEffect.found"]).filter({
                         "HeroMosaic.useEffect.found": (u)=>Boolean(u)
                     }["HeroMosaic.useEffect.found"]);
-                    setUrls(Array.from(new Set(found)).slice(0, 30));
+                    const unique = Array.from(new Set(found)).slice(0, 30);
+                    // Decodifica todo antes de mostrar: si no, las fotos que entran en pantalla
+                    // se pintan con un frame de retraso y aparece un destello oscuro.
+                    Promise.all(unique.map({
+                        "HeroMosaic.useEffect": (src)=>{
+                            const img = new window.Image();
+                            img.src = src;
+                            preloaded.push(img);
+                            return img.decode().then({
+                                "HeroMosaic.useEffect": ()=>src
+                            }["HeroMosaic.useEffect"], {
+                                "HeroMosaic.useEffect": ()=>null
+                            }["HeroMosaic.useEffect"]);
+                        }
+                    }["HeroMosaic.useEffect"])).then({
+                        "HeroMosaic.useEffect": (ok)=>{
+                            if (!cancelled) setUrls(ok.filter({
+                                "HeroMosaic.useEffect": (u)=>u !== null
+                            }["HeroMosaic.useEffect"]));
+                        }
+                    }["HeroMosaic.useEffect"]);
                 }
             }["HeroMosaic.useEffect"]);
             return ({
                 "HeroMosaic.useEffect": ()=>{
                     cancelled = true;
+                    preloaded.length = 0;
                 }
             })["HeroMosaic.useEffect"];
         }
@@ -3889,7 +3906,7 @@ function HeroMosaic() {
                 className: "object-cover object-[center_35%] sm:object-center"
             }, void 0, false, {
                 fileName: "[project]/components/hero-mosaic.tsx",
-                lineNumber: 97,
+                lineNumber: 111,
                 columnNumber: 9
             }, this) : null,
             columns.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$motion$2f$dist$2f$es$2f$react$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["motion"].div, {
@@ -3910,7 +3927,7 @@ function HeroMosaic() {
                     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "w-[84px] shrink-0 sm:w-[104px] lg:w-[120px]",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "flex flex-col will-change-transform",
+                            className: "flex flex-col will-change-transform [backface-visibility:hidden] [contain:paint]",
                             style: {
                                 animation: `${dir === "up" ? "mosaic-up" : "mosaic-down"} ${duration}s linear infinite`
                             },
@@ -3922,47 +3939,47 @@ function HeroMosaic() {
                                     accent: (i * 5 + j % col.length * 3) % 11 === 0
                                 }, `${src}-${j}`, false, {
                                     fileName: "[project]/components/hero-mosaic.tsx",
-                                    lineNumber: 128,
+                                    lineNumber: 142,
                                     columnNumber: 21
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/hero-mosaic.tsx",
-                            lineNumber: 120,
+                            lineNumber: 134,
                             columnNumber: 17
                         }, this)
                     }, i, false, {
                         fileName: "[project]/components/hero-mosaic.tsx",
-                        lineNumber: 119,
+                        lineNumber: 133,
                         columnNumber: 15
                     }, this);
                 })
             }, void 0, false, {
                 fileName: "[project]/components/hero-mosaic.tsx",
-                lineNumber: 109,
+                lineNumber: 123,
                 columnNumber: 9
             }, this) : null,
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_45%,rgba(7,18,51,0.82),rgba(7,18,51,0.55)_70%,rgba(7,18,51,0.85))]"
             }, void 0, false, {
                 fileName: "[project]/components/hero-mosaic.tsx",
-                lineNumber: 138,
+                lineNumber: 152,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute inset-0 bg-gradient-to-b from-[#071233]/60 via-transparent to-[#071233]/30"
             }, void 0, false, {
                 fileName: "[project]/components/hero-mosaic.tsx",
-                lineNumber: 139,
+                lineNumber: 153,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/hero-mosaic.tsx",
-        lineNumber: 95,
+        lineNumber: 109,
         columnNumber: 5
     }, this);
 }
-_s1(HeroMosaic, "zgOUQ2RKJMhHh8nYQF/nV3oqJrQ=");
+_s(HeroMosaic, "zgOUQ2RKJMhHh8nYQF/nV3oqJrQ=");
 _c1 = HeroMosaic;
 var _c, _c1;
 __turbopack_context__.k.register(_c, "Tile");
