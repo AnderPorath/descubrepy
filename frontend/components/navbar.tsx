@@ -65,7 +65,7 @@ export function Navbar() {
       className={cn(
         "sticky top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300",
         scrolled
-          ? "border-black/5 bg-white/75 shadow-[0_8px_30px_-12px_rgba(7,18,51,0.18)] backdrop-blur-xl backdrop-saturate-150"
+          ? "border-black/5 bg-white shadow-[0_8px_30px_-12px_rgba(7,18,51,0.18)]"
           : "border-border bg-white",
       )}
     >
@@ -202,7 +202,7 @@ export function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: EASE_OUT }}
-            className="overflow-hidden border-t border-border bg-white/95 backdrop-blur-xl lg:hidden"
+            className="overflow-hidden border-t border-border bg-white lg:hidden"
           >
             <motion.ul
               className="flex flex-col gap-1 px-4 py-3"

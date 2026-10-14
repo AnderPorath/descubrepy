@@ -1943,7 +1943,7 @@ function Navbar() {
             duration: 0.35,
             ease: EASE_OUT
         },
-        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("sticky top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300", scrolled ? "border-black/5 bg-white/75 shadow-[0_8px_30px_-12px_rgba(7,18,51,0.18)] backdrop-blur-xl backdrop-saturate-150" : "border-border bg-white"),
+        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("sticky top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300", scrolled ? "border-black/5 bg-white shadow-[0_8px_30px_-12px_rgba(7,18,51,0.18)]" : "border-border bg-white"),
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 transition-[padding] duration-300 lg:px-8", scrolled ? "py-1.5" : "py-2"),
@@ -2214,7 +2214,7 @@ function Navbar() {
                         duration: 0.3,
                         ease: EASE_OUT
                     },
-                    className: "overflow-hidden border-t border-border bg-white/95 backdrop-blur-xl lg:hidden",
+                    className: "overflow-hidden border-t border-border bg-white lg:hidden",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$motion$2f$dist$2f$es$2f$react$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["motion"].ul, {
                             className: "flex flex-col gap-1 px-4 py-3",
