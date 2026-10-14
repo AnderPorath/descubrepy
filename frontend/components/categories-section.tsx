@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { CategoryIcon } from "@/components/category-icon"
+import { CategoriesGrid, CategoriesMarquee } from "@/components/categories-grid"
+import { Reveal } from "@/components/motion/primitives"
 import { fetchCategories } from "@/lib/api"
 
 const DEFAULT_CATEGORIES: Array<{ id: number; slug: string; title: string; description: string | null; icon_name: string; business_count: number }> = [
@@ -38,43 +39,32 @@ export async function CategoriesSection() {
   }
 
   return (
-    <section id="categorias" className="bg-white pb-20 pt-4 lg:pb-28 lg:pt-6">
+    <section id="categorias" className="scroll-mt-20 bg-white pb-20 pt-4 lg:pb-28 lg:pt-6">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="text-center">
+        <CategoriesMarquee categories={categories} />
+
+        <Reveal className="mt-10 text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Encuentra lo que buscas
           </h2>
-          <div className="mx-auto mt-4 h-1 w-14 rounded-full bg-accent" />
+          <div className="mx-auto mt-4 h-1 w-14 rounded-full bg-gradient-to-r from-[#E52B2B] via-amber-300 to-[#0038A8]" />
           <p className="mx-auto mt-5 max-w-xl text-base font-normal leading-relaxed text-gray-500">
             Navega entre nuestras categorias y descubri negocios increibles en todo Paraguay.
           </p>
-        </div>
+        </Reveal>
 
         {/* 2 filas × 6 columnas (inicio) */}
-        <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-3 lg:mt-12 lg:grid-cols-6 lg:gap-5">
-          {categories.slice(0, 12).map((category) => (
-              <Link
-                key={category.id}
-                href={`/categorias/${category.slug}?from=inicio`}
-                className="group flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-3 rounded-[20px] border border-[#e5e7eb] bg-white p-4 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] sm:min-h-[140px] sm:p-5 sm:gap-4 md:min-h-[100px] md:p-4 lg:min-h-[140px] lg:p-5"
-              >
-                <CategoryIcon categorySlug={category.slug} size="default" className="transition-colors duration-300 group-hover:from-primary/30 group-hover:to-primary/10 sm:scale-110" />
-                <h3 className="text-sm font-semibold text-[#111827] sm:text-base lg:text-lg">
-                  {category.title}
-                </h3>
-              </Link>
-            ))}
-        </div>
+        <CategoriesGrid categories={categories.slice(0, 12)} />
 
-        <div className="mt-12 flex justify-center sm:mt-16 lg:mt-20">
+        <Reveal className="mt-12 flex justify-center sm:mt-16 lg:mt-20" delay={0.1}>
           <Link
             href="/categorias"
-            className="inline-flex items-center gap-2 text-base font-semibold text-blue-700 transition-colors hover:text-blue-800"
+            className="group inline-flex items-center gap-2 text-base font-semibold text-blue-700 transition-colors hover:text-blue-800"
           >
             Ver todas las categorias
-            <ArrowRight className="h-5 w-5" />
+            <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5" />
           </Link>
-        </div>
+        </Reveal>
       </div>
     </section>
   )

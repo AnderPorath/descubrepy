@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { OpenStatusBadge } from "@/components/open-status-badge"
 import { fetchFeatured, getImageUrl, type BusinessApi } from "@/lib/api"
 import { sortBusinessesByOpenStatus } from "@/lib/opening-hours"
+import { motion } from "motion/react"
+import { Reveal, TiltCard } from "@/components/motion/primitives"
 
 const PLACEHOLDER_IMG = "/placeholder.svg"
 
@@ -16,6 +18,7 @@ export function FeaturedSectionClient() {
   const [loading, setLoading] = useState(true)
   const [failedImageIds, setFailedImageIds] = useState<Set<number>>(new Set())
   const carouselRef = useRef<HTMLDivElement | null>(null)
+  const pausedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -34,6 +37,7 @@ export function FeaturedSectionClient() {
     if (!el || featured.length <= 1) return
 
     const interval = window.setInterval(() => {
+      if (pausedRef.current) return
       const card = el.querySelector<HTMLElement>("[data-featured-card]")
       const step = card ? card.offsetWidth + 24 : Math.round(el.clientWidth * 0.85)
       const maxScrollLeft = Math.max(0, el.scrollWidth - el.clientWidth)
@@ -50,7 +54,7 @@ export function FeaturedSectionClient() {
   return (
     <section id="destacados" className="bg-secondary py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+        <Reveal className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
             <span className="text-sm font-semibold tracking-wide text-accent uppercase">
               Destacados
@@ -62,17 +66,19 @@ export function FeaturedSectionClient() {
               Los lugares mejor valorados por nuestra comunidad
             </p>
           </div>
-          <Button variant="outline" asChild className="cursor-pointer gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+          <Button variant="outline" asChild className="group cursor-pointer gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
             <Link href="/destacados">
               Ver todos
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Button>
-        </div>
+        </Reveal>
 
         <div
           ref={carouselRef}
-          className="mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          onPointerEnter={() => { pausedRef.current = true }}
+          onPointerLeave={() => { pausedRef.current = false }}
+          className="-mx-2 mt-10 flex snap-x snap-mandatory gap-6 overflow-x-auto px-2 pb-6 pt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {loading ? (
             <div className="flex w-full justify-center py-12">
@@ -83,24 +89,37 @@ export function FeaturedSectionClient() {
               Aún no hay negocios destacados. Los que marques como destacados al crear o editar aparecerán aquí.
             </p>
           ) : (
-            featured.map((business) => (
-              <Link
+            featured.map((business, i) => (
+              <motion.div
                 key={business.id}
-                href={`/negocio/${business.slug}`}
                 data-featured-card
-                className="group block w-[85vw] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 sm:w-[360px] lg:w-[320px]"
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: Math.min(i, 5) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="w-[85vw] shrink-0 snap-start sm:w-[360px] lg:w-[320px]"
+              >
+              <TiltCard max={6} className="rounded-xl">
+              <Link
+                href={`/negocio/${business.slug}`}
+                className="group block h-full overflow-hidden rounded-xl border border-border bg-card transition-shadow duration-300 hover:shadow-[0_24px_50px_-18px_rgba(0,40,104,0.35)]"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={failedImageIds.has(business.id) ? PLACEHOLDER_IMG : (getImageUrl(business.image_url) || PLACEHOLDER_IMG)}
                     alt={business.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                     unoptimized
                     onError={() => setFailedImageIds((s) => new Set(s).add(business.id))}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   {business.featured ? (
-                    <span className="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground shadow-lg">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/80" />
+                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                      </span>
                       Destacado
                     </span>
                   ) : null}
@@ -133,10 +152,12 @@ export function FeaturedSectionClient() {
 
                   <span className="mt-3 flex w-full items-center gap-1 text-sm text-accent group-hover:underline">
                     Ver más
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </div>
               </Link>
+              </TiltCard>
+              </motion.div>
             ))
           )}
         </div>

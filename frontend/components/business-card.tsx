@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { OpenStatusBadge } from "@/components/open-status-badge"
 import { getImageUrl, type BusinessApi } from "@/lib/api"
+import { motion } from "motion/react"
+import { TiltCard } from "@/components/motion/primitives"
 
 const DEFAULT_IMAGE = "/placeholder.jpg"
 
@@ -23,14 +25,22 @@ export function BusinessCard({ business, onRedeemClick }: BusinessCardProps) {
   const locationText = business.city?.trim()
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
+    <motion.div
+      className="h-full"
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+    >
+    <TiltCard max={5} className="rounded-2xl">
+    <article className="group h-full overflow-hidden rounded-2xl border border-border bg-card transition-shadow duration-300 hover:shadow-[0_24px_50px_-18px_rgba(0,40,104,0.3)]">
       <Link href={`/negocio/${business.slug}`} className="block">
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
             src={imageUrl}
             alt={business.name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             unoptimized={imageUrl.startsWith("http") || imageUrl.startsWith("/")}
             onError={() => setImageUrl(DEFAULT_IMAGE)}
           />
@@ -97,5 +107,7 @@ export function BusinessCard({ business, onRedeemClick }: BusinessCardProps) {
         </div>
       ) : null}
     </article>
+    </TiltCard>
+    </motion.div>
   )
 }
