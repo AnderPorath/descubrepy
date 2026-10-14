@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -27,8 +26,7 @@ import { fetchStats } from "@/lib/api"
 import { canonicalizeDistrictName } from "@/lib/paraguay-departments"
 import { DepartmentDistrictFilters } from "@/components/department-district-filters"
 import { CountUp, Magnetic } from "@/components/motion/primitives"
-
-const HERO_BG = "/images/hero-inicio-v8.jpg"
+import { HeroMosaic } from "@/components/hero-mosaic"
 
 const QUICK_CATEGORIES_LEFT = [
   { label: "RESTAURANTES", href: "/categorias/gastronomia?from=inicio", icon: UtensilsCrossed },
@@ -180,16 +178,7 @@ export function HeroSection() {
             animate={{ scale: 1 }}
             transition={{ duration: 2.4, ease: EASE_OUT }}
           >
-            <Image
-              src={HERO_BG}
-              alt=""
-              fill
-              priority
-              quality={100}
-              sizes="100vw"
-              unoptimized
-              className="object-cover object-[center_35%] sm:object-center"
-            />
+            <HeroMosaic />
           </motion.div>
         </motion.div>
       </motion.div>
@@ -198,17 +187,17 @@ export function HeroSection() {
       <motion.div aria-hidden className="pointer-events-none absolute inset-0 z-0" style={{ x: orbX, y: orbY }}>
         <motion.div
           className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#E52B2B]/35 blur-[90px] md:h-96 md:w-96"
-          animate={reduce ? undefined : { x: [0, 60, -20, 0], y: [0, 30, 60, 0], scale: [1, 1.15, 0.95, 1] }}
+          animate={{ x: [0, 60, -20, 0], y: [0, 30, 60, 0], scale: [1, 1.15, 0.95, 1] }}
           transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute -right-24 top-24 h-72 w-72 rounded-full bg-[#0038A8]/45 blur-[90px] md:h-[28rem] md:w-[28rem]"
-          animate={reduce ? undefined : { x: [0, -50, 20, 0], y: [0, 50, -20, 0], scale: [1, 0.9, 1.1, 1] }}
+          animate={{ x: [0, -50, 20, 0], y: [0, 50, -20, 0], scale: [1, 0.9, 1.1, 1] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute bottom-10 left-1/3 h-56 w-56 rounded-full bg-amber-300/20 blur-[80px]"
-          animate={reduce ? undefined : { x: [0, 40, -40, 0], scale: [1, 1.2, 1] }}
+          animate={{ x: [0, 40, -40, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
@@ -217,7 +206,7 @@ export function HeroSection() {
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[1] h-28 bg-gradient-to-t from-white via-white/95 to-transparent sm:h-32" />
 
       <motion.div
-        style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
+        style={{ y: contentY, opacity: contentOpacity }}
         className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-4 pb-16 pt-14 text-center sm:px-6 md:pb-20 md:pt-16 lg:max-w-7xl lg:pb-24 lg:pt-20"
       >
         <motion.span
@@ -227,7 +216,7 @@ export function HeroSection() {
           <motion.span
             aria-hidden
             className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/25 to-transparent"
-            animate={reduce ? undefined : { x: ["0%", "400%"] }}
+            animate={{ x: ["0%", "400%"] }}
             transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
           />
           🇵🇾 Tu guía digital de Paraguay
@@ -241,7 +230,7 @@ export function HeroSection() {
           <span className="inline-block">
             <span className="text-[#E52B2B]">Par</span>
             <span className="text-white">agu</span>
-            <span className="text-[#0038A8]">ay</span>
+            <span className="text-[#6E9BFF]">ay</span>
           </span>
         </motion.h1>
 
@@ -336,7 +325,7 @@ export function HeroSection() {
             >
               <motion.div
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/90"
-                animate={reduce ? undefined : { rotate: [0, -8, 8, 0] }}
+                animate={{ rotate: [0, -8, 8, 0] }}
                 transition={{ duration: 1.2, delay: 2, repeat: Infinity, repeatDelay: 5 }}
               >
                 <Store className="h-5 w-5 text-accent-foreground" />
@@ -351,7 +340,7 @@ export function HeroSection() {
                 <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/50">
                   Y seguimos creciendo
                   <motion.span
-                    animate={reduce ? undefined : { rotate: [0, 180, 360], scale: [1, 1.3, 1] }}
+                    animate={{ rotate: [0, 180, 360], scale: [1, 1.3, 1] }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     className="inline-flex"
                   >
@@ -379,7 +368,7 @@ export function HeroSection() {
         >
           Explorá
           <motion.span
-            animate={reduce ? undefined : { y: [0, 6, 0] }}
+            animate={{ y: [0, 6, 0] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
           >
             <ChevronDown className="h-4 w-4" />
