@@ -40,7 +40,7 @@ const QUICK_CATEGORIES_RIGHT = [
   { label: "TIENDAS Y MÁS", href: "/categorias/moda?from=inicio", icon: ShoppingBag },
 ] as const
 
-const ROTATING_WORDS = ["negocios", "sabores", "descuentos", "lugares", "servicios"]
+const ROTATING_WORDS = ["negocios", "sabores", "lugares", "servicios"]
 
 const heroSelectClass =
   "!w-full min-w-0 border-0 bg-transparent px-3 shadow-none focus:ring-0 focus-visible:ring-0 [&_[data-slot=select-value]]:line-clamp-none [&_[data-slot=select-value]]:whitespace-normal [&_[data-slot=select-value]]:text-left h-12 text-sm font-medium text-neutral-700"
